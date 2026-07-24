@@ -1,12 +1,12 @@
-package view;
+package view.game;
 
-import model.Board;
-import model.Tile;
+import model.board.Board;
+import model.board.Tile;
 import model.Game;
-import model.LawnMower;
+import model.board.LawnMower;
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
-import model.Sun;
+import model.board.Sun;
 import model.enums.TileType;
 import model.enums.SpecialLevelType;
 import model.minigame.*;
@@ -103,14 +103,14 @@ public class GameView extends View {
         Board board = game.getBoard();
         LawnMower[] mowers = game.getLawnMowers();
 
-        // ۱. چاپ دقیق راهنمای شمارهٔ ستون‌ها (۰ تا ۸) دقیقا بالای مرکز هر ستون
-        StringBuilder colHeader = new StringBuilder("       "); // ۵ کاراکتر برای عبور از [ M] + ۲ فاصله
+
+        StringBuilder colHeader = new StringBuilder("       ");
         for (int c = 0; c < 9; c++) {
-            colHeader.append(String.format("%-7d", c)); // عرض دقیق ۷ کاراکتر برای هر ستون
+            colHeader.append(String.format("%-7d", c));
         }
         showMessage(colHeader.toString());
 
-        // ۲. چاپ سطرها همراه با شمارهٔ سطر (۰ تا ۴) در سمت راست
+
         for (int r = 0; r < board.getRows(); r++) {
             StringBuilder rowStr = new StringBuilder();
 
@@ -129,7 +129,7 @@ public class GameView extends View {
                 rowStr.append("[").append(paddedContent).append("] ");
             }
 
-            // شماره سطر در سمت راست
+
             rowStr.append(" ").append(r);
             showMessage(rowStr.toString());
         }

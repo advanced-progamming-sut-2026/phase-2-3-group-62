@@ -183,14 +183,12 @@ public class Zombotany extends MiniGame {
                 z.setX(spawnCol);
                 z.setY(lane);
             }
-            
-            // Scale with stage difficulty - using existing methods
+
             if (stageDifficulty >= 2) {
-                // We can't set health directly, so we use the available constructor
-                // The zombie already has its stats from creation
+
             }
             if (stageDifficulty >= 3) {
-                // Damage scaling handled by creation
+
             }
             
             game.addZombie(z);

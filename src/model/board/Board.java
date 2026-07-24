@@ -1,5 +1,6 @@
-package model;
+package model.board;
 
+import model.Game;
 import model.enums.TileType;
 import model.entities.zombie.Zombie;
 import java.util.ArrayList;
@@ -131,7 +132,7 @@ public class Board {
             int checkTileCol = (int) Math.floor(newBulletX);
             Tile tile = getTile(bRow, checkTileCol);
 
-            // --- اصلاح Torchwood: تبدیل تیر معمولی یا یخی به تیر آتشین با دمیج چندبرابر ---
+
             if (tile != null && tile.getPlant() != null && tile.getPlant().getName().replace(" ", "").replace("-", "").equalsIgnoreCase("Torchwood")) {
                 if (bullet.getType() == Bullet.BulletType.NORMAL || bullet.getType() == Bullet.BulletType.ICE) {
                     bulletsToRemove.add(bullet);
@@ -151,7 +152,7 @@ public class Board {
                 }
             }
 
-            // برخورد با قبر
+
             if (tile != null && tile.getType() == TileType.GRAVE && bullet.getType() != Bullet.BulletType.LOB) {
                 if (oldBulletX <= checkTileCol && newBulletX >= checkTileCol) {
                     tile.setGraveHealth(tile.getGraveHealth() - bullet.getDamage());
@@ -168,7 +169,7 @@ public class Board {
                 }
             }
 
-            // برخورد با زامبی‌ها
+
             Zombie targetZombie = null;
             for (Zombie z : game.getActiveZombies()) {
                 if (!z.isHypnotized() && z.getY() == bRow) {

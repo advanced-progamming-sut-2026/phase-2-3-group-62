@@ -45,7 +45,7 @@ public class Plant {
     private boolean isBlueFlame;
     private int magnetCooldownTicks;
 
-    // متغیر سطح گیاه
+
     private int level = 1;
 
     public Plant(int id, String name, String category, List<String> tags, int cost, int baseHp, int damage, double actionInterval, double recharge, String abilityType, double abilityValue, String plantFoodType, double plantFoodValue) {
@@ -107,7 +107,7 @@ public class Plant {
         if (name == null) return;
         String cleanName = name.replace(" ", "").replace("-", "");
 
-        // گیاهان دست اول (۱ تا ۹)
+
         if (cleanName.equalsIgnoreCase("Sunflower")) {
             if (level >= 2) this.actionInterval = Math.max(1.0, this.actionInterval - 2.0);
             if (level >= 3) { this.baseHp += 150; initHealth(); }
@@ -115,7 +115,7 @@ public class Plant {
             if (level >= 2) this.actionInterval = Math.max(1.0, this.actionInterval - 2.0);
             if (level >= 3) { this.baseHp += 150; initHealth(); }
             if (level >= 4) this.cost = Math.max(0, this.cost - 25);
-        } else if (cleanName.equalsIgnoreCase("SunShroom")) { // شناسه ۳
+        } else if (cleanName.equalsIgnoreCase("SunShroom")) {
             if (level >= 2) this.actionInterval = Math.max(1.0, this.actionInterval - 2.0);
             if (level >= 3) { this.baseHp += 150; initHealth(); }
         } else if (cleanName.equalsIgnoreCase("PrimalSunflower")) {
@@ -143,7 +143,7 @@ public class Plant {
             if (level >= 3) this.abilityValue += 1.5;
             if (level >= 4) this.cost = Math.max(0, this.cost - 25);
         }
-        // گیاهان دست دوم (۱۰ تا ۱۷)
+
         else if (cleanName.equalsIgnoreCase("Rotobaga")) {
             if (level >= 2) this.damage += 10;
             if (level >= 3) { this.baseHp += 150; initHealth(); }
@@ -176,7 +176,7 @@ public class Plant {
             if (level >= 3) this.damage += 10;
             if (level >= 4) this.cost = Math.max(0, this.cost - 25);
         }
-        // گیاهان جدید (۱۸ تا ۲۰)
+
         else if (cleanName.equalsIgnoreCase("Starfruit")) {
             if (level >= 2) this.damage += 10;
             if (level >= 3) { this.baseHp += 150; initHealth(); }

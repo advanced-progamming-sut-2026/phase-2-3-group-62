@@ -1,5 +1,6 @@
 package controller.menu;
 
+import controller.CommandParser;
 import util.ParsedCommand;
 import view.menu.CollectionMenu;
 import view.menu.GameMenu;

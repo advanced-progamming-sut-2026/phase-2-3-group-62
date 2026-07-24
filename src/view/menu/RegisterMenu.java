@@ -1,7 +1,7 @@
 package view.menu;
 
 import controller.menu.MenuController;
-import controller.menu.CommandParser;
+import controller.CommandParser;
 import util.ParsedCommand;
 
 public class RegisterMenu extends Menu {

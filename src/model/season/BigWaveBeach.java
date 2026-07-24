@@ -1,8 +1,8 @@
 package model.season;
 
 import model.Game;
-import model.Board;
-import model.Tile;
+import model.board.Board;
+import model.board.Tile;
 import model.enums.TileType;
 import model.entities.plant.Plant;
 import java.util.ArrayList;

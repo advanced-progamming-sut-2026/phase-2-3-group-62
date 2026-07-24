@@ -1,5 +1,7 @@
 package model.season;
 
+import model.board.Board;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +73,6 @@ public class Season {
     public void setupEnvironment(model.Game game) {}
     public void handleWaveStart(model.Game game) {}
     public void handleTick(model.Game game) {}
-    public int modifySpawnColumn(int currentWave, int totalWaves, int defaultColumn, int zombiesSpawned, model.Board board, int lane) { return defaultColumn; }
+    public int modifySpawnColumn(int currentWave, int totalWaves, int defaultColumn, int zombiesSpawned, Board board, int lane) { return defaultColumn; }
     public boolean allowsNaturalSunDrop() { return true; }
 }

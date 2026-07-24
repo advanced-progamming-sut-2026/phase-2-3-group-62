@@ -1,7 +1,7 @@
 package model.season;
 
 import model.Game;
-import model.Board;
+import model.board.Board;
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
 import java.util.ArrayList;

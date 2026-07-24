@@ -1,7 +1,7 @@
 package controller.menu;
 
-import model.User;
-import model.UserSession;
+import model.user.User;
+import model.user.UserSession;
 import model.greenhouse.Greenhouse;
 import model.greenhouse.Pot;
 import model.shop.Shop;

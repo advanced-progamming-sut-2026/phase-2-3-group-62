@@ -1,7 +1,7 @@
 package model.greenhouse;
 
-import model.User;
-import model.UserSession;
+import model.user.User;
+import model.user.UserSession;
 import java.util.ArrayList;
 import java.util.List;
 

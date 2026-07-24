@@ -1,4 +1,4 @@
-package controller.menu;
+package controller;
 
 public class Validator {
     public enum ValidationResult {
@@ -6,13 +6,13 @@ public class Validator {
         INVALID_FORMAT,
         INVALID_LENGTH,
         EMPTY_OR_NULL,
-        //password
+
         WEAK_PASSWORD_NO_UPPER, WEAK_PASSWORD_NO_LOWER,
         WEAK_PASSWORD_NO_DIGIT, WEAK_PASSWORD_NO_SPECIAL,
         PASSWORD_MISMATCH,
-        //email
+
         INVALID_EMAIL_FORMAT,
-        //gender
+
         INVALID_GENDER
     }
 

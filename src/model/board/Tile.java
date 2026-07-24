@@ -1,4 +1,4 @@
-package model;
+package model.board;
 
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;

@@ -1,7 +1,7 @@
 import controller.menu.MenuController;
-import model.Settings;
-import model.User;
-import model.UserSession;
+import model.user.Settings;
+import model.user.User;
+import model.user.UserSession;
 import util.FileManager;
 import view.menu.LoginMenu;
 import view.menu.MainMenu;

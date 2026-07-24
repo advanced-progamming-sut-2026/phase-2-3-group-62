@@ -20,7 +20,7 @@ public class ParsedCommand {
         args.put(flag, value);
     }
 
-    // متدهای کمکی برای کنترلر
+
     public String getArg(String flag) {
         return args.get(flag);
     }

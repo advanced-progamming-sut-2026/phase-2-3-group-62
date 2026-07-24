@@ -1,10 +1,11 @@
 package controller.menu;
 
+import controller.CommandParser;
+import controller.game.GameController;
 import model.Game;
-import model.Tile;
-import model.Settings;
+
+import model.board.Tile;
 import model.enums.SpecialLevelType;
-import model.entities.zombie.factory.ZombieFactory;
 import model.entities.zombie.Zombie;
 import model.entities.plant.Plant;
 import model.season.AncientEgypt;
@@ -13,6 +14,7 @@ import model.season.DarkAges;
 import model.season.FrostbiteCaves;
 import model.season.Season;
 import model.minigame.MiniGame;
+import model.user.Settings;
 import util.FileManager;
 import util.ParsedCommand;
 import view.menu.MainMenu;
@@ -24,6 +26,7 @@ public class GameMenuController extends Controller {
     private final GameController gameController;
     private final MenuController menuController;
     private final CommandParser parser;
+    private final CheatController cheatController;
 
     public GameMenuController(MenuController menuController) {
         super(menuController);
@@ -86,7 +89,6 @@ public class GameMenuController extends Controller {
         this.game.setupSpecialLevelFeatures();
         this.game.setSunCount(this.game.getLevel().getInitialSunAmount());
 
-        // --- FORCE SETUP FOR MINIGAMES AFTER START ---
         if (this.game.getActiveMiniGame() instanceof model.minigame.IZombie) {
             ((model.minigame.IZombie) this.game.getActiveMiniGame()).setupStage(this.game, 1);
         }
@@ -96,10 +98,10 @@ public class GameMenuController extends Controller {
         if (this.game.getActiveMiniGame() instanceof model.minigame.Vasebreaker) {
             ((model.minigame.Vasebreaker) this.game.getActiveMiniGame()).setupVaseGrid(5, 9, 1);
         }
-        // WallnutBowling and Zombotany don't need forced setup - they work differently
 
         this.gameController = new GameController(menuController);
         this.gameController.setGame(this.game);
+        this.cheatController = new CheatController(this.gameController);
         this.parser = new CommandParser();
     }
 
@@ -118,6 +120,7 @@ public class GameMenuController extends Controller {
         if (input.equalsIgnoreCase("guide") || input.equalsIgnoreCase("help")) {
             return util.HelpGuide.getGuideForMenu("game");
         }
+
         if (action.equalsIgnoreCase("advance time")) {
             String ticksStr = cmd.getArg("-t");
             int ticks = 1;
@@ -130,24 +133,22 @@ public class GameMenuController extends Controller {
                 }
             }
             int waveBefore = game.getSpawner() != null ? game.getSpawner().getCurrentWave() : 0;
-            int sunsBefore = game.getSuns().size();
 
             int executed = gameController.advanceTime(ticks);
-            String report = "Time advanced by " + executed + " ticks.";
+            StringBuilder report = new StringBuilder("Time advanced by ").append(executed).append(" ticks.");
 
             if (game.getSpawner() != null && game.getSpawner().getCurrentWave() > waveBefore) {
-                report += "\n[WAVE] ---> A new Wave started! Current Wave: " + game.getSpawner().getCurrentWave();
+                report.append("\n[WAVE] ---> A new Wave started! Current Wave: ").append(game.getSpawner().getCurrentWave());
             }
-            if (game.getSuns().size() > sunsBefore && !"DarkAges".equals(PreGameController.activeChapterName)) {
-                report += "\n[SUN] A natural sun fell from sky!";
-            }
+
 
             List<String> logs = gameController.extractAccumulatedTurnLogs();
             for (String log : logs) {
-                report += "\n" + log;
+                report.append("\n").append(log);
             }
-            return report;
+            return report.toString();
         }
+
         if (action.equalsIgnoreCase("show map")) {
             return "SHOW_MAP_TRIGGER";
         }
@@ -259,7 +260,6 @@ public class GameMenuController extends Controller {
             }
         }
 
-
         if (action.equalsIgnoreCase("place zombie")) {
             String type = cmd.getArg("-t");
             String laneStr = cmd.getArg("-l");
@@ -288,11 +288,8 @@ public class GameMenuController extends Controller {
                 return "Usage: pickup packet -l (<x>,<y>)";
             }
             try {
-                // Remove ALL non-digit characters EXCEPT comma
                 loc = loc.replaceAll("[^0-9,]", "");
-                // Remove duplicate commas
                 loc = loc.replaceAll(",{2,}", ",");
-                // Remove leading/trailing commas
                 if (loc.startsWith(",")) loc = loc.substring(1);
                 if (loc.endsWith(",")) loc = loc.substring(0, loc.length() - 1);
 
@@ -385,66 +382,9 @@ public class GameMenuController extends Controller {
         if (input.toLowerCase().startsWith("release the nuke")) {
             return gameController.executeNuke();
         }
-        if (action.equalsIgnoreCase("cheat remove-cooldown")) {
-            return gameController.executeRemoveCooldownCheat();
-        }
-        if (action.equalsIgnoreCase("cheat add-plant-food")) {
-            return gameController.executeAddPlantFoodCheat();
-        }
-        if (action.equalsIgnoreCase("cheat spawn-zombie")) {
-            String type = cmd.getArg("-t");
-            String loc = cmd.getArg("-l");
-            if (type == null || loc == null) {
-                return "Usage: cheat spawn-zombie -t <type> -l (<x>, <y>)";
-            }
-            try {
-                loc = loc.replace("(", "").replace(")", "");
-                String[] coords = loc.split(",");
-                int x = Integer.parseInt(coords[0].trim());
-                int y = Integer.parseInt(coords[1].trim());
 
-                if (y < 0 || y >= game.getBoard().getRows() || x < 0 || x >= game.getBoard().getColumns()) {
-                    return "Error: Coordinates out of board bounds! Maximum row allowed is " + (game.getBoard().getRows() - 1);
-                }
-
-                String formattedType = type.equalsIgnoreCase("normalzombie") ? "NormalZombie" : type;
-                Zombie z = ZombieFactory.createZombieAtColumn(formattedType, y, x, game.getDifficultyLevel());
-                if (z != null) {
-                    if (model.UserSession.isLoggedIn() && model.UserSession.getCurrentUser() != null) {
-                        List<String> observed = model.UserSession.getCurrentUser().getObservedZombies();
-                        if (!observed.contains(z.getName())) {
-                            observed.add(z.getName());
-                            util.FileManager.updateUser(model.UserSession.getCurrentUser());
-                        }
-                    }
-                    game.addZombie(z);
-                    return "Zombie spawned via cheat.";
-                }
-                return "Invalid zombie type.";
-            } catch (Exception e) {
-                return "Invalid format! Use: cheat spawn-zombie -t <type> -l (<x>, <y>)";
-            }
-        }
-        if (action.equalsIgnoreCase("cheat add")) {
-            if (cmd.hasFlag("-n")) {
-                try {
-                    String countStr = cmd.getArg("-n");
-                    int amount = Integer.parseInt(countStr.split(" ")[0]);
-                    return gameController.addCheatSuns(amount);
-                } catch (Exception e) {
-                    return "Invalid cheat format.";
-                }
-            } else {
-                String valueStr = cmd.getArg("VALUE");
-                if (valueStr != null && valueStr.toLowerCase().contains("sun")) {
-                    try {
-                        int amount = Integer.parseInt(valueStr.toLowerCase().replace("suns", "").trim());
-                        return gameController.addCheatSuns(amount);
-                    } catch (Exception e) {
-                        return "Invalid cheat format.";
-                    }
-                }
-            }
+        if (action.toLowerCase().contains("cheat")) {
+            return cheatController.handleCheatCommand(cmd);
         }
 
         return "Unknown game command. Type 'exit' to return to menu.";

@@ -1,8 +1,8 @@
 package controller;
 
-import model.NewsItem;
-import model.User;
-import model.UserSession;
+import model.user.NewsItem;
+import model.user.User;
+import model.user.UserSession;
 import util.FileManager;
 import util.ParsedCommand;
 

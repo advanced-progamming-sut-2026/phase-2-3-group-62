@@ -1,12 +1,11 @@
 package model.minigame;
 
 import model.Game;
-import model.Tile;
+import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.plant.factory.PlantFactory;
 import model.entities.zombie.Zombie;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class Beghoul extends MiniGame {
@@ -17,13 +16,13 @@ public class Beghoul extends MiniGame {
     private int maxStageLevel;
     private boolean isSetup;
 
-    // Upgrade paths
+
     private static final String[][] UPGRADE_PATHS = {
         {"PeaShooter", "Repeater", "Threepeater"},
         {"WallNut", "TallNut"},
         {"Cabbagepult", "Melonpult", "WinterMelon"},
         {"PuffShroom", "FumeShroom"},
-        {"SnowPea", "Repeater"} // Alternative path
+        {"SnowPea", "Repeater"}
     };
 
     private static final int[][] UPGRADE_COSTS = {
@@ -47,11 +46,11 @@ public class Beghoul extends MiniGame {
     public void setupStage(Game game, int level) {
         this.stageLevel = level;
         this.matchesFormed = 0;
-        this.targetMatches = 5 + level * 5; // Level 1: 10, Level 2: 15, Level 3: 20
+        this.targetMatches = 5 + level * 5;
         this.craters = new boolean[5][9];
         this.isSetup = true;
 
-        // Clear existing plants and zombies
+
         for (Plant p : new ArrayList<>(game.getActivePlants())) {
             game.getBoard().getTile(p.getY(), p.getX()).setPlant(null);
             game.removePlant(p);
@@ -61,7 +60,7 @@ public class Beghoul extends MiniGame {
             game.removeZombie(z);
         }
 
-        // Different plant types per stage
+
         String[][] stagePlants = {
             {"PeaShooter", "Sunflower", "WallNut", "SnowPea", "Cabbagepult"},
             {"PeaShooter", "Repeater", "TallNut", "SnowPea", "Melonpult", "PuffShroom"},
@@ -72,7 +71,7 @@ public class Beghoul extends MiniGame {
         String[] types = stagePlants[Math.min(level - 1, stagePlants.length - 1)];
         fillGridRandomly(game, types);
         
-        // Start with some matches already checked
+
         while (checkAndProcessMatches(game, false)) {}
         
         game.getGameLogMessages().add("Beghoul: Stage " + level + " started!");
@@ -91,7 +90,7 @@ public class Beghoul extends MiniGame {
                 String type = types[rand.nextInt(types.length)];
                 Plant p = PlantFactory.createPlant(type);
                 if (p == null) {
-                    // Use the constructor that exists in Plant.java
+
                     p = new Plant(rand.nextInt(1000) + 200, type, "BEGHOULD", null, 0, 300, 20, 2.0, 0, null, 0, null, 0);
                     p.initHealth();
                 }
@@ -125,7 +124,6 @@ public class Beghoul extends MiniGame {
                 game.removePlant(tile.getPlant());
                 Plant up = PlantFactory.createPlant(toType);
                 if (up == null) {
-                    // Create plant with proper constructor
                     up = new Plant(999, toType, "BEGHOULD", null, 0, 400, 40, 1.5, 0, null, 0, null, 0);
                 }
                 up.setX(c);
@@ -149,7 +147,7 @@ public class Beghoul extends MiniGame {
                     if (i < UPGRADE_COSTS.length && j < UPGRADE_COSTS[i].length) {
                         return UPGRADE_COSTS[i][j];
                     }
-                    // Fallback costs based on stage
+
                     return stageLevel * 300 + 200;
                 }
             }
@@ -157,12 +155,9 @@ public class Beghoul extends MiniGame {
         return -1;
     }
 
-    public int getMatchesFormed() { return matchesFormed; }
+
     public void addMatch() { this.matchesFormed++; }
-    public int getTargetMatches() { return targetMatches; }
-    public void setTargetMatches(int targetMatches) { this.targetMatches = targetMatches; }
     public int getStageLevel() { return stageLevel; }
-    public void setStageLevel(int level) { this.stageLevel = Math.min(level, maxStageLevel); }
 
     public boolean hasCrater(int r, int c) {
         if (r >= 0 && r < 5 && c >= 0 && c < 9) return craters[r][c];
@@ -184,7 +179,7 @@ public class Beghoul extends MiniGame {
     }
 
     public void updateMiniGame(Game game) {
-    // Setup on first tick
+
     if (!isSetup) {
         setupStage(game, stageLevel);
         return;
@@ -197,7 +192,6 @@ public class Beghoul extends MiniGame {
             isSetup = false;
             game.getGameLogMessages().add("Beghoul: Stage " + (stageLevel - 1) + " complete! Moving to Stage " + stageLevel);
             setupStage(game, stageLevel);
-            // Remove all zombies
             for (Zombie z : new ArrayList<>(game.getActiveZombies())) {
                 game.getBoard().getTile(z.getY(), (int) z.getX()).setZombie(null);
                 game.removeZombie(z);
@@ -215,7 +209,7 @@ public class Beghoul extends MiniGame {
         }
     }
 
-    // Check for no possible moves
+
     if (!hasAnyPossibleMoves(game)) {
         String[] types = {"PeaShooter", "Sunflower", "WallNut", "SnowPea", "Repeater"};
         fillGridRandomly(game, types);
@@ -223,17 +217,16 @@ public class Beghoul extends MiniGame {
         while (checkAndProcessMatches(game, false)) {}
     }
 
-    // Spawn zombies periodically - FIXED VERSION
+
     if (game.getTickCount() % 80 == 0) {
         Zombie z = model.entities.zombie.factory.ZombieFactory.createZombie("NormalZombie");
         if (z != null) {
             int r = new Random().nextInt(5);
             z.setX(8.0);
             z.setY(r);
-            
-            // Make zombie stronger in higher stages
+
             if (stageLevel >= 2) {
-                // Create a new zombie with higher health instead of setHealth
+
                 Zombie stronger = new Zombie(
                     z.getName(), 
                     z.getMaxHealth() + 100, 
@@ -245,7 +238,7 @@ public class Beghoul extends MiniGame {
                 z = stronger;
             }
             if (stageLevel >= 3) {
-                // Create a new zombie with higher damage
+
                 Zombie stronger = new Zombie(
                     z.getName(), 
                     z.getMaxHealth(), 
@@ -272,7 +265,6 @@ public class Beghoul extends MiniGame {
         boolean[][] toRemove = new boolean[5][9];
         boolean foundMatch = false;
 
-        // Check horizontal matches
         for (int r = 0; r < 5; r++) {
             for (int c = 0; c < 7; c++) {
                 Tile t1 = game.getBoard().getTile(r, c);
@@ -293,7 +285,6 @@ public class Beghoul extends MiniGame {
             }
         }
 
-        // Check vertical matches
         for (int c = 0; c < 9; c++) {
             for (int r = 0; r < 3; r++) {
                 Tile t1 = game.getBoard().getTile(r, c);

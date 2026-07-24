@@ -3,6 +3,8 @@ package model.score;
 import model.Game;
 import model.entities.zombie.Zombie;
 import model.entities.plant.Plant;
+import model.handler.QuestManager;
+
 import java.util.*;
 
 public class ScoreGame {
@@ -65,6 +67,7 @@ public class ScoreGame {
             maxCombo = currentCombo;
         }
 
+        QuestManager.notifyZombieKilled();
         checkPatterns();
     }
 
@@ -75,11 +78,13 @@ public class ScoreGame {
     public void onPlantPlaced(Plant plant) {
         plantsPlaced++;
         plantUsage.put(plant.getName(), plantUsage.getOrDefault(plant.getName(), 0) + 1);
+        QuestManager.notifyPlantPlaced();
     }
 
     public void onSunCollected(int amount) {
         sunsCollected++;
         totalScore += amount / 5;
+        QuestManager.notifySunCollected(amount);
     }
 
     public void onWaveCompleted(int waveNumber) {

@@ -1,7 +1,6 @@
 package model.entities.plant;
 
-import model.Bullet;
-import model.entities.zombie.Zombie;
+import model.board.Bullet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,24 +17,24 @@ public class ShootBehavior {
     private int currentCooldown;
 
     public enum ShootType {
-        DIRECT,         // Straight line (Peashooter)
-        LOB,            // Lobbed over obstacles (Cabbage-pult)
-        ICE,            // Slows zombies (Snow Pea)
-        FIRE,           // Double damage, melts ice (Fire Peashooter)
-        POISON,         // Damages over time, ignores armor (Goo Peashooter)
-        LASER,          // Pierces through zombies (Repeater)
-        CATAPULT,       // Lobbed with area damage (Melon-pult)
-        BURST,          // Multiple shots (Threepeater)
-        HOMING,         // Tracks zombies (Homing Thistle)
-        MINT,           // Boosts all plants of a family
-        MELEE,          // Close range physical (Bonk Choy)
-        INSTANT,        // Instant kill (Cherry Bomb)
-        TRAP,           // Mines (Potato Mine)
-        SUPPORT,        // Support abilities (Sunflower)
-        DEFENSIVE,      // Defensive (Wall-nut)
-        STRIKE_THROUGH, // Hits all zombies in lane (Laser Bean)
-        MAGIC,          // Special effects (Witch Hazel)
-        ELECTRIC        // Chain lightning (Lightning Reed)
+        DIRECT,
+        LOB,
+        ICE,
+        FIRE,
+        POISON,
+        LASER,
+        CATAPULT,
+        BURST,
+        HOMING,
+        MINT,
+        MELEE,
+        INSTANT,
+        TRAP,
+        SUPPORT,
+        DEFENSIVE,
+        STRIKE_THROUGH,
+        MAGIC,
+        ELECTRIC
     }
 
     public ShootBehavior(ShootType shootType, int damage, int range, boolean pierce,
@@ -74,7 +73,7 @@ public class ShootBehavior {
     }
 
     public Bullet createBullet(int row, int column) {
-        // Determine bullet type based on shoot type
+
         Bullet.BulletType bulletType = switch (shootType) {
             case ICE -> Bullet.BulletType.ICE;
             case FIRE -> Bullet.BulletType.FIRE;
@@ -95,7 +94,7 @@ public class ShootBehavior {
         if (shootType == ShootType.BURST) {
             for (int i = 0; i < count; i++) {
                 Bullet bullet = createBullet(row, column);
-                bullet.setTargetRow(row + (i - count/2)); // Spread across rows
+                bullet.setTargetRow(row + (i - count/2));
                 bullets.add(bullet);
             }
         } else {

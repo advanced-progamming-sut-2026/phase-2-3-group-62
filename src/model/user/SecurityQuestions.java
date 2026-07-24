@@ -1,9 +1,8 @@
-package model;
+package model.user;
 
 import java.util.List;
 
 public class SecurityQuestions {
-    // لیستِ ثابت سوالات
     private static final List<String> QUESTIONS = List.of(
             "What is your mother's maiden name?",
             "What was the name of your first pet?",

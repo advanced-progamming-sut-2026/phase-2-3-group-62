@@ -1,7 +1,7 @@
 package controller.menu;
 
-import model.User;
-import model.UserSession;
+import model.user.User;
+import model.user.UserSession;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
 import util.FileManager;
@@ -28,46 +28,63 @@ public class PreGameController {
             }
 
             String lowerCh = cleanString(chapter).toLowerCase();
+            int seasonNum = 1;
+            int levelNum = 1;
 
             if (lowerCh.equals("ancientegypt") || lowerCh.equals("egypt")) {
                 activeChapterName = "AncientEgypt";
-                return "Successfully entered chapter: AncientEgypt (Level 1)";
+                seasonNum = 1; levelNum = 1;
             } else if (lowerCh.equals("ancientegypt2")) {
                 activeChapterName = "AncientEgypt2";
-                return "Successfully entered chapter: AncientEgypt (Level 2 - Night Ops)";
+                seasonNum = 1; levelNum = 2;
             } else if (lowerCh.equals("ancientegypt3")) {
                 activeChapterName = "AncientEgypt3";
-                return "Successfully entered chapter: AncientEgypt (Level 3 - Dead Line)";
+                seasonNum = 1; levelNum = 3;
             } else if (lowerCh.equals("frostbitecaves") || lowerCh.equals("caves")) {
                 activeChapterName = "FrostbiteCaves";
-                return "Successfully entered chapter: FrostbiteCaves (Level 1)";
+                seasonNum = 2; levelNum = 1;
             } else if (lowerCh.equals("frostbitecaves2")) {
                 activeChapterName = "FrostbiteCaves2";
-                return "Successfully entered chapter: FrostbiteCaves (Level 2 - Save Our Seeds)";
+                seasonNum = 2; levelNum = 2;
             } else if (lowerCh.equals("frostbitecaves3")) {
                 activeChapterName = "FrostbiteCaves3";
-                return "Successfully entered chapter: FrostbiteCaves (Level 3 - Timed War)";
+                seasonNum = 2; levelNum = 3;
             } else if (lowerCh.equals("bigwavebeach") || lowerCh.equals("beach")) {
                 activeChapterName = "BigWaveBeach";
-                return "Successfully entered chapter: BigWaveBeach (Level 1)";
+                seasonNum = 3; levelNum = 1;
             } else if (lowerCh.equals("bigwavebeach2")) {
                 activeChapterName = "BigWaveBeach2";
-                return "Successfully entered chapter: BigWaveBeach (Level 2 - Night Ops)";
+                seasonNum = 3; levelNum = 2;
             } else if (lowerCh.equals("bigwavebeach3")) {
                 activeChapterName = "BigWaveBeach3";
-                return "Successfully entered chapter: BigWaveBeach (Level 3 - Dead Line)";
+                seasonNum = 3; levelNum = 3;
             } else if (lowerCh.equals("darkages")) {
                 activeChapterName = "DarkAges";
-                return "Successfully entered chapter: DarkAges (Level 1)";
+                seasonNum = 4; levelNum = 1;
             } else if (lowerCh.equals("darkages2")) {
                 activeChapterName = "DarkAges2";
-                return "Successfully entered chapter: DarkAges (Level 2 - Save Our Seeds)";
+                seasonNum = 4; levelNum = 2;
             } else if (lowerCh.equals("darkages3")) {
                 activeChapterName = "DarkAges3";
-                return "Successfully entered chapter: DarkAges (Level 3 - Timed War)";
+                seasonNum = 4; levelNum = 3;
             } else {
                 return "Error: Unknown chapter name.";
             }
+
+            currentUser.setLastSeasonCompleted(seasonNum);
+            currentUser.setLastLevelCompleted(levelNum);
+            FileManager.updateUser(currentUser);
+
+            String formattedOutput = activeChapterName;
+            if (activeChapterName.contains("2")) {
+                formattedOutput = activeChapterName.replace("2", "") + " (Level 2)";
+            } else if (activeChapterName.contains("3")) {
+                formattedOutput = activeChapterName.replace("3", "") + " (Level 3)";
+            } else {
+                formattedOutput = activeChapterName + " (Level 1)";
+            }
+
+            return "Successfully entered chapter: " + formattedOutput;
         }
 
         if (action.equalsIgnoreCase("show all plants")) {

@@ -1,6 +1,6 @@
-package view;
+package view.game;
 
-import controller.menu.Validator;
+import controller.Validator;
 import util.HelpGuide;
 import java.util.List;
 import java.util.Scanner;
@@ -46,7 +46,6 @@ public class TerminalView extends View {
         showMessage("you should enter" + elemt);
     }
 
-    //userneme
     public void showUsernameExistsError() {
         showMessage("Username is already taken.");
     }
@@ -60,7 +59,7 @@ public class TerminalView extends View {
         showMessage(message);
     }
 
-    //password
+
     public void showPasswordError(Validator.ValidationResult result) {
         String message = switch (result) {
             case INVALID_LENGTH -> "Password must be at least 8 characters long.";
@@ -82,7 +81,6 @@ public class TerminalView extends View {
         showMessage("Gender must be male or female.");
     }
 
-    //email
     public void showEmailError(Validator.ValidationResult result) {
         String message = switch (result) {
             case INVALID_EMAIL_FORMAT -> "Invalid email format. Please check for @, dots, and valid domain.";
@@ -102,7 +100,6 @@ public class TerminalView extends View {
         }
     }
 
-    //login
     public void showSecurityQuestion(String question) {
         showMessage("Your security question is: " + question);
     }

@@ -1,8 +1,8 @@
 package view.menu;
 
-import controller.menu.CommandParser;
+import controller.CommandParser;
 import controller.menu.MenuController;
-import view.TerminalView;
+import view.game.TerminalView;
 
 public abstract class Menu {
     protected MenuController controller;

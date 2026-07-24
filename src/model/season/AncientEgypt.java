@@ -1,7 +1,7 @@
 package model.season;
 
 import model.Game;
-import model.Board;
+import model.board.Board;
 import java.util.Random;
 
 public class AncientEgypt extends Season {

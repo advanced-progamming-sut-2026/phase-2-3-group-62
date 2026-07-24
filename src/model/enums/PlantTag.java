@@ -1,7 +1,6 @@
 package model.enums;
 
 public enum PlantTag {
-    // Base tags
     SHOOTER,
     SUN_PRODUCER,
     DEFENDER,
@@ -9,8 +8,7 @@ public enum PlantTag {
     INSTANT_ATTACK,
     SUPPORT,
     AQUATIC,
-    
-    // Additional tags
+
     DAY,
     NIGHT,
     SHROOM,

@@ -3,7 +3,7 @@ package model.leaderboard;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import model.User;
+import model.user.User;
 
 public class Leaderboard {
     private final List<User> users;

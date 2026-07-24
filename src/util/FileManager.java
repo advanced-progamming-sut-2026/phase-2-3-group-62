@@ -3,9 +3,8 @@ package util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import model.Settings;
-import model.User;
-import model.enums.Gender;
+import model.user.Settings;
+import model.user.User;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -18,13 +17,12 @@ public class FileManager {
     private static final String SETTINGS_PATH = FOLDER_PATH + "/settings.json";
 
     public static void saveUsers(List<User> users) {
-        // ۱. ساختنِ پوشه اگر وجود ندارد
+
         File folder = new File(FOLDER_PATH);
         if (!folder.exists()) {
             folder.mkdir();
         }
 
-        // ۲. نوشتنِ فایل
         try (FileWriter writer = new FileWriter(FILE_PATH)) {
             gson.toJson(users, writer);
         } catch (IOException e) {
@@ -101,7 +99,6 @@ public class FileManager {
             return new ArrayList<>();
         }
         try (FileReader reader = new FileReader(FILE_PATH)) {
-            // خواندن لیست از فایل
             List<User> users = gson.fromJson(reader, new TypeToken<List<User>>(){}.getType());
 
 

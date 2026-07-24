@@ -103,29 +103,20 @@ public class HelpGuide {
             case "game":
             case "gameplay":
                 return """
-                       === IN-GAME COMMANDS ===
-                       1. advance time -t <count> ticks (or press Enter)
-                       2. show sun amount
-                       3. collect sun -l (<x>, <y>)
-                       4. plant plant -t <type> -l (<x>, <y>)
-                       5. pluck plant -l (<x>, <y>)
-                       6. feed plant -l (<x>, <y>)
-                       7. show map
-                       8. show plant status / show tile status -l (<x>, <y>)
-                       9. zombies info
-                       10. MINI-GAME COMMANDS:
-                          - Vasebreaker: smash vase -l (<x>, <y>) | pickup packet -l (<x>, <y>)
-                          - I,Zombie: place zombie -t <type> -l <lane>
-                          - Beghouled: swap plants -l (<x1>,<y1>) -m (<x2>,<y2>) | upgrade plants -f <from> -t <to>
-                          - Wallnut Bowling: plant plant -t <type> -l (<x>, <y>) 
-                       11. CHEATS:
-                          - cheat add <count> suns
-                          - cheat add-plant-food
-                          - cheat remove-cooldown
-                          - cheat spawn-zombie -t <type> -l (<x>, <y>)
-                          - release the nuke
-                       12. exit game
-                       """;
+           === IN-GAME COMMANDS ===
+           1. advance time -t <ticks> (or Enter) | 2. show sun amount | 3. collect sun -l (<x>,<y>)
+           4. plant plant -t <type> -l (<x>,<y>) | 5. pluck plant -l (<x>,<y>) | 6. feed plant -l (<x>,<y>)
+           7. show map | 8. show plant/tile status -l (<x>,<y>) | 9. zombies info
+           
+           10. MINI-GAMES:
+              - Vasebreaker: smash vase / pickup packet -l (<x>,<y>)
+              - I,Zombie: place zombie -t <type> -l <lane>
+              - Beghouled: swap plants -l (<x1>,<y1>) -m (<x2>,<y2>) | upgrade plants -f <from> -t <to>
+              - Wallnut Bowling: plant plant -t <type> -l (<x>,<y>)
+              
+           11. CHEATS: cheat add <count> suns | cheat add-plant-food | cheat remove-cooldown | cheat spawn-zombie -t <type> -l (<x>,<y>) | release the nuke
+           12. exit game
+           """;
 
             case "greenhouse":
                 return """

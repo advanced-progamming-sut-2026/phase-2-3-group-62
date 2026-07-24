@@ -1,6 +1,6 @@
 package view.menu;
 
-import controller.menu.CommandParser;
+import controller.CommandParser;
 import controller.menu.MenuController;
 import controller.menu.GreenhouseController;
 import controller.menu.ShopController;

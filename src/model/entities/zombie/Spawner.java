@@ -1,12 +1,13 @@
 package model.entities.zombie;
 
-import model.Board;
-import model.Tile;
+import model.board.Board;
+import model.board.Tile;
 import model.entities.zombie.factory.ZombieFactory;
 import model.enums.Difficulty;
 import model.enums.ChapterZombieType;
 import model.season.Season;
 import controller.menu.PreGameController;
+import model.user.UserSession;
 
 import java.util.*;
 
@@ -184,12 +185,12 @@ public class Spawner {
                 zombie.setGlowing(true);
             }
 
-            if (model.UserSession.isLoggedIn() && model.UserSession.getCurrentUser() != null) {
-                List<String> observed = model.UserSession.getCurrentUser().getObservedZombies();
+            if (UserSession.isLoggedIn() && UserSession.getCurrentUser() != null) {
+                List<String> observed = UserSession.getCurrentUser().getObservedZombies();
                 if (!observed.contains(zombie.getName())) {
                     observed.add(zombie.getName());
-                    model.UserSession.getCurrentUser().addNews("New zombie encountered: " + zombie.getName() + "!");
-                    util.FileManager.updateUser(model.UserSession.getCurrentUser());
+                    UserSession.getCurrentUser().addNews("New zombie encountered: " + zombie.getName() + "!");
+                    util.FileManager.updateUser(UserSession.getCurrentUser());
                 }
             }
 

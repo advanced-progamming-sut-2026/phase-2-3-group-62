@@ -1,9 +1,9 @@
 package view.menu;
 
-import controller.menu.CommandParser;
+import controller.CommandParser;
 import controller.menu.MenuController;
-import model.User;
-import model.UserSession;
+import model.user.User;
+import model.user.UserSession;
 import model.quest.Quest;
 import util.ParsedCommand;
 import java.util.ArrayList;
@@ -85,7 +85,7 @@ public class TravelLogMenu extends Menu {
             return;
         }
 
-        // Sort by Priority: CRITICAL > HIGH > MEDIUM > LOW
+
         filtered.sort((q1, q2) -> {
             if (q1.getPriority() == Quest.Priority.CRITICAL) return -1;
             if (q2.getPriority() == Quest.Priority.CRITICAL) return 1;
@@ -192,7 +192,6 @@ public class TravelLogMenu extends Menu {
     }
     
     private boolean isMinigameCompleted(User user, String minigameName) {
-        // For now, return false - can be expanded with user progress tracking
         return false;
     }
     

@@ -1,5 +1,7 @@
 package model.shop;
 
+import model.user.UserSession;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,8 +81,8 @@ public class Shop {
     public void refreshDailyOffers() {
         dailyOffers.clear();
         List<String> unlocked = new ArrayList<>();
-        if (model.UserSession.isLoggedIn() && model.UserSession.getCurrentUser() != null) {
-            unlocked = model.UserSession.getCurrentUser().getUnlockedPlants();
+        if (UserSession.isLoggedIn() && UserSession.getCurrentUser() != null) {
+            unlocked = UserSession.getCurrentUser().getUnlockedPlants();
         }
         if (unlocked == null || unlocked.isEmpty()) {
             unlocked = new ArrayList<>();

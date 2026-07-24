@@ -1,4 +1,4 @@
-package controller.menu;
+package controller;
 
 import util.ParsedCommand;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ public class CommandParser {
             "place zombie",
             // Beghoul commands
             "swap plants",
-            "upgrade plants",   // <-- ADD THIS
+            "upgrade plants",
             // Vasebreaker commands
             "smash vase",
             "pickup packet",

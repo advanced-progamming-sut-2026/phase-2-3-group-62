@@ -41,53 +41,53 @@ public class Zombie {
     private int zombotanyJalapenoTimer;
     private int izombieSunProductionTicks;
 
-    // === NEW PROPERTIES FOR ZOMBIE CORRECTIONS ===
 
-    // Turquoise Zombie - Sun Stealing
+
+
     private int sunStealCooldown;
     private int sunStealTimer;
     private int stolenSunCount;
 
-    // Prospector Zombie - Landing Position
+
     private boolean hasLandedAfterExplosion;
     private double landingX;
 
-    // Barrel Roller Zombie
+
     private int barrelHealth;
     private int maxBarrelHealth;
     private boolean barrelDestroyed;
     private boolean isBarrelRoller;
 
-    // Troglobite Zombie
+
     private int iceBlockHealth;
     private int maxIceBlockHealth;
     private boolean iceBlockDestroyed;
     private boolean isTroglobite;
 
-    // Snorkel Zombie
+
     private boolean isUnderwater;
     private boolean hasSurfaced;
     private int underwaterTimer;
 
-    // Jester Zombie
+
     private boolean isInsane;
     private int insanityThreshold;
     private int damageTakenSinceLastReset;
     private int reflectCooldown;
     private boolean isReflecting;
 
-    // Wizard Zombie
+
     private int transformationCooldown;
     private int transformationTimer;
     private boolean isWizard;
 
-    // King Zombie
+
     private boolean isKing;
     private boolean isIdle;
     private double spawnX;
     private int kingTimerTicks;
 
-    // Dodo Rider
+
     private boolean isDodoRider;
     private int jumpCooldown;
     private boolean isJumping;
@@ -135,7 +135,6 @@ public class Zombie {
         this.zombotanyJalapenoTimer = 0;
         this.izombieSunProductionTicks = 0;
 
-        // === NEW PROPERTY INITIALIZATION ===
         this.sunStealCooldown = 30;
         this.sunStealTimer = 0;
         this.stolenSunCount = 0;
@@ -196,7 +195,7 @@ public class Zombie {
             return;
         }
 
-        // === TROGLOBITE: Damage goes to ice block first ===
+
         if (isTroglobite && !iceBlockDestroyed && iceBlockHealth > 0) {
             iceBlockHealth -= amount;
             if (iceBlockHealth <= 0) {
@@ -206,7 +205,6 @@ public class Zombie {
             return;
         }
 
-        // === BARREL ROLLER: Damage goes to barrel first ===
         if (isBarrelRoller && !barrelDestroyed && barrelHealth > 0) {
             barrelHealth -= amount;
             if (barrelHealth <= 0) {
@@ -229,7 +227,6 @@ public class Zombie {
             health = 0;
         }
 
-        // === JESTER: Track damage for insanity ===
         if (isJuggler() && !isInsane) {
             damageTakenSinceLastReset += amount;
             if (damageTakenSinceLastReset >= insanityThreshold) {
@@ -344,13 +341,11 @@ public class Zombie {
     }
 
     public void move() {
-        // === KING ZOMBIE: Never moves from spawn position ===
         if (isKing) {
             this.x = spawnX;
             return;
         }
 
-        // === DODO RIDER: Jumping over obstacles ===
         if (isDodoRider && isJumping) {
             this.x -= getEffectiveSpeed() * 2.0;
             return;
@@ -408,7 +403,6 @@ public class Zombie {
         return speedPerTick;
     }
 
-    // isDodoRider() - KEEP ONLY ONE VERSION (this is the existing one from your original code)
     public boolean isDodoRider() {
         return isDodoRider || (name != null && (name.equalsIgnoreCase("dodo rider") || name.equalsIgnoreCase("ZombieIceAgeDodo")));
     }
@@ -423,7 +417,7 @@ public class Zombie {
         this.jumpTimer = duration;
     }
 
-    // === GETTERS AND SETTERS ===
+
 
     public String getName() { return name; }
     public int getHealth() { return health; }
@@ -503,9 +497,7 @@ public class Zombie {
     public int getIzombieSunProductionTicks() { return izombieSunProductionTicks; }
     public void incrementIzombieSunTicks() { this.izombieSunProductionTicks++; }
 
-    // === NEW GETTERS AND SETTERS ===
 
-    // Turquoise Zombie
     public int getSunStealCooldown() { return sunStealCooldown; }
     public void setSunStealCooldown(int sunStealCooldown) { this.sunStealCooldown = sunStealCooldown; }
     public int getSunStealTimer() { return sunStealTimer; }
@@ -516,13 +508,13 @@ public class Zombie {
     public void setStolenSunCount(int stolenSunCount) { this.stolenSunCount = stolenSunCount; }
     public void addStolenSunCount(int amount) { this.stolenSunCount += amount; }
 
-    // Prospector
+
     public boolean isHasLandedAfterExplosion() { return hasLandedAfterExplosion; }
     public void setHasLandedAfterExplosion(boolean hasLanded) { this.hasLandedAfterExplosion = hasLanded; }
     public double getLandingX() { return landingX; }
     public void setLandingX(double landingX) { this.landingX = landingX; }
 
-    // Barrel Roller
+
     public int getBarrelHealth() { return barrelHealth; }
     public void setBarrelHealth(int barrelHealth) { this.barrelHealth = barrelHealth; this.maxBarrelHealth = barrelHealth; }
     public int getMaxBarrelHealth() { return maxBarrelHealth; }
@@ -531,7 +523,7 @@ public class Zombie {
     public boolean isBarrelRoller() { return isBarrelRoller; }
     public void setBarrelRoller(boolean isBarrelRoller) { this.isBarrelRoller = isBarrelRoller; }
 
-    // Troglobite
+
     public int getIceBlockHealth() { return iceBlockHealth; }
     public void setIceBlockHealth(int iceBlockHealth) { this.iceBlockHealth = iceBlockHealth; this.maxIceBlockHealth = iceBlockHealth; }
     public int getMaxIceBlockHealth() { return maxIceBlockHealth; }
@@ -540,7 +532,7 @@ public class Zombie {
     public boolean isTroglobite() { return isTroglobite; }
     public void setTroglobite(boolean isTroglobite) { this.isTroglobite = isTroglobite; }
 
-    // Snorkel
+
     public boolean isUnderwater() { return isUnderwater; }
     public void setUnderwater(boolean isUnderwater) { this.isUnderwater = isUnderwater; }
     public boolean isHasSurfaced() { return hasSurfaced; }
@@ -548,7 +540,7 @@ public class Zombie {
     public int getUnderwaterTimer() { return underwaterTimer; }
     public void setUnderwaterTimer(int underwaterTimer) { this.underwaterTimer = underwaterTimer; }
 
-    // Jester
+
     public boolean isInsane() { return isInsane; }
     public void setInsane(boolean isInsane) { this.isInsane = isInsane; }
     public int getInsanityThreshold() { return insanityThreshold; }
@@ -561,7 +553,7 @@ public class Zombie {
     public void setReflecting(boolean isReflecting) { this.isReflecting = isReflecting; }
     public void incrementReflectCooldown() { this.reflectCooldown++; }
 
-    // Wizard
+
     public int getTransformationCooldown() { return transformationCooldown; }
     public void setTransformationCooldown(int transformationCooldown) { this.transformationCooldown = transformationCooldown; }
     public int getTransformationTimer() { return transformationTimer; }
@@ -571,7 +563,7 @@ public class Zombie {
     public boolean isWizard() { return isWizard; }
     public void setWizard(boolean isWizard) { this.isWizard = isWizard; }
 
-    // King
+
     public boolean isKing() { return isKing; }
     public void setKing(boolean isKing) { this.isKing = isKing; }
     public boolean isIdle() { return isIdle; }
@@ -583,7 +575,7 @@ public class Zombie {
     public void incrementKingTimerTicks() { this.kingTimerTicks++; }
     public void resetKingTimerTicks() { this.kingTimerTicks = 0; }
 
-    // Dodo Rider - Note: isDodoRider() already exists above, so these are the setter/getter for the field
+
     public boolean isDodoRiderField() { return isDodoRider; }
     public void setDodoRider(boolean isDodoRider) { this.isDodoRider = isDodoRider; }
     public int getJumpCooldown() { return jumpCooldown; }

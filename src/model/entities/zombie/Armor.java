@@ -5,7 +5,7 @@ public class Armor {
     private int health;
     private int maxHealth;
     private boolean destroyed;
-    private int resistance; // Percentage of damage resisted (0-100)
+    private int resistance;
 
     public Armor(ArmorType type, int health) {
         this(type, health, 0);
@@ -22,7 +22,6 @@ public class Armor {
     public void takeDamage(int amount) {
         if (destroyed) return;
 
-        // Apply resistance
         int actualDamage = (int) (amount * (1 - resistance / 100.0));
         health -= actualDamage;
 
@@ -33,28 +32,24 @@ public class Armor {
     }
 
     public void onDestroyed(Zombie zombie) {
-        // Special effects when armor is destroyed
+
         switch (type) {
             case NEWSPAPER:
                 zombie.setEnraged(true);
                 break;
             case DYNAMITE:
-                // Explodes after 10 seconds
+
                 break;
             case UMBRELLA:
-                // No longer blocks lobbed attacks
                 break;
             default:
                 break;
         }
     }
 
-    public boolean isDestroyed() { return destroyed; }
+
     public ArmorType getType() { return type; }
-    public int getHealth() { return health; }
     public int getMaxHealth() { return maxHealth; }
-    public int getResistance() { return resistance; }
-    public void setResistance(int resistance) { this.resistance = resistance; }
 
     @Override
     public String toString() {
@@ -86,7 +81,7 @@ public class Armor {
     }
 
     public static Armor createBox() {
-        return new Armor(ArmorType.BOX, 500, 50); // 50% resistance
+        return new Armor(ArmorType.BOX, 500, 50);
     }
 
     public static Armor createTorch() {

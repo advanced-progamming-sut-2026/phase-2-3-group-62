@@ -1,22 +1,20 @@
 package controller.menu;
 
+import controller.CommandParser;
 import controller.NewsController;
-import model.SecurityQuestions;
-import model.Settings;
-import model.User;
-import model.UserSession;
-import model.entities.zombie.Zombie;
-import model.entities.plant.Plant;
-import model.entities.plant.loader.PlantLoader;
-import model.entities.zombie.loader.ZombieLoader;
+import controller.Validator;
+import model.user.SecurityQuestions;
+import model.user.Settings;
+import model.user.User;
+import model.user.UserSession;
 import model.enums.Gender;
-import model.leaderboard.Leaderboard;
 import util.FileManager;
 import util.HashUtil;
 import util.ParsedCommand;
-import view.TerminalView;
+import view.game.TerminalView;
 import view.menu.MainMenu;
 import view.menu.MenuManager;
+import view.menu.PlayMenu;
 
 import java.util.List;
 
@@ -28,10 +26,13 @@ public class MenuController {
     private final CommandParser parser = new CommandParser();
     private String currentForgetPasswordUsername;
     private final NewsController newsController = new NewsController();
+    private final CollectionController collectionController = new CollectionController(this);
+    private final LeaderboardController leaderboardController = new LeaderboardController(view);
 
     public void addNews(String content) {
         newsController.addNewsTrigger(content);
     }
+
     public String processRegister(ParsedCommand cmd) {
         Validator validator = new Validator();
         Validator.ValidationResult res;
@@ -92,7 +93,6 @@ public class MenuController {
                 return "invalid";
             }
 
-
             User newUser = new User(
                     cmd.getArg("-u"),
                     HashUtil.sha256(password),
@@ -114,6 +114,7 @@ public class MenuController {
         view.showChoseQuestion(questions);
         return "VALID_STEP_1";
     }
+
     public String processLogin(ParsedCommand cmd) {
         if (!cmd.hasFlag("-u") || !cmd.hasFlag("-p")) {
             return "Invalid command format. Username and password are required.";
@@ -145,6 +146,7 @@ public class MenuController {
 
         return "Login successful!";
     }
+
     public String processForgetPassword(ParsedCommand cmd) {
         if (cmd.getAction().equals("forget password")) {
             if (!cmd.hasFlag("-u") || !cmd.hasFlag("-e")) {
@@ -234,9 +236,9 @@ public class MenuController {
 
         return "invalid action";
     }
+
     public String processLogOut(ParsedCommand cmd) {
         String username = UserSession.getCurrentUser().getUsername();
-
         UserSession.clear();
 
         Settings settings = FileManager.loadSettings();
@@ -245,6 +247,7 @@ public class MenuController {
 
         return "User " + username + " logged out successfully!";
     }
+
     public String processPlay(ParsedCommand cmd, String action) {
         if (cmd.getArg("-c") != null && cmd.getArg("-c").equalsIgnoreCase("test")) {
             return "ok";
@@ -288,8 +291,9 @@ public class MenuController {
         }
         return "no";
     }
-    public String processSetting(ParsedCommand cmd){
-        if(cmd.getArg("-l") != null){
+
+    public String processSetting(ParsedCommand cmd) {
+        if (cmd.getArg("-l") != null) {
             Settings settings = FileManager.loadSettings();
             int newDifficulty = Integer.parseInt(cmd.getArg("-l"));
             settings.setDifficulty(newDifficulty);
@@ -299,9 +303,11 @@ public class MenuController {
         }
         return "error";
     }
+
     public String processNews(ParsedCommand cmd, String action) {
         return newsController.processNews(cmd, action);
     }
+
     public String processProfile(ParsedCommand cmd, String action) {
         User currentUser = UserSession.getCurrentUser();
         if (currentUser == null) {
@@ -323,8 +329,7 @@ public class MenuController {
             currentUser.setUsername(newUsername);
             FileManager.updateUser(currentUser);
             return "Username updated successfully to: " + newUsername;
-        }
-        else if (action.equalsIgnoreCase("change-nickname")) {
+        } else if (action.equalsIgnoreCase("change-nickname")) {
             String newNickname = cmd.getArg("-n");
             res = validator.validateNickname(newNickname);
             if (res != Validator.ValidationResult.VALID) {
@@ -334,8 +339,7 @@ public class MenuController {
             currentUser.setNickname(newNickname);
             FileManager.updateUser(currentUser);
             return "Nickname updated successfully to: " + newNickname;
-        }
-        else if (action.equalsIgnoreCase("change-email")) {
+        } else if (action.equalsIgnoreCase("change-email")) {
             String newEmail = cmd.getArg("-e");
             res = validator.validateEmail(newEmail);
             if (res != Validator.ValidationResult.VALID) {
@@ -345,8 +349,7 @@ public class MenuController {
             currentUser.setEmail(newEmail);
             FileManager.updateUser(currentUser);
             return "Email updated successfully to: " + newEmail;
-        }
-        else if (action.equalsIgnoreCase("change-password")) {
+        } else if (action.equalsIgnoreCase("change-password")) {
             String oldPassword = cmd.getArg("-o");
             String newPassword = cmd.getArg("-p");
             if (oldPassword == null || newPassword == null) {
@@ -368,8 +371,7 @@ public class MenuController {
             currentUser.setPassword(hashedNew);
             FileManager.updateUser(currentUser);
             return "Password updated successfully.";
-        }
-        else if (action.equalsIgnoreCase("show-info")) {
+        } else if (action.equalsIgnoreCase("show-info")) {
             StringBuilder info = new StringBuilder();
             info.append("Username: ").append(currentUser.getUsername()).append("\n");
             info.append("Nickname: ").append(currentUser.getNickname()).append("\n");
@@ -380,281 +382,59 @@ public class MenuController {
         }
         return "error";
     }
+
     public String processCollection(ParsedCommand cmd, String action) {
-        User currentUser = UserSession.getCurrentUser();
-        if (currentUser == null) {
-            return "Error: No user is logged in.";
-        }
-        List<Plant> allPlants = PlantLoader.loadPlants();
-        List<Zombie> allZombies = ZombieLoader.loadZombies();
-
-        if (action.equalsIgnoreCase("show-plants")) {
-            List<String> unlocked = currentUser.getUnlockedPlants();
-            if (unlocked.isEmpty()) {
-                return "You have no unlocked plants.";
-            }
-            StringBuilder sb = new StringBuilder("Your unlocked plants:\n");
-            for (String plant : unlocked) {
-                int level = currentUser.getPlantLevels().getOrDefault(plant, 1);
-                sb.append("- ").append(plant).append(" (Level ").append(level).append(")\n");
-            }
-            return sb.toString().trim();
-        }
-        if (action.equalsIgnoreCase("show-all-plants")) {
-            StringBuilder sb = new StringBuilder("All game plants:\n");
-            for (Plant plant : allPlants) {
-                sb.append("- ").append(plant.getName());
-
-                String category = plant.getCategory() != null ? plant.getCategory().toString() : "N/A";
-                String tags = (plant.getTags() != null && !plant.getTags().isEmpty())
-                        ? String.join(", ", plant.getTags())
-                        : "None";
-
-                sb.append(" [Category: ").append(category)
-                        .append(" | Tags: ").append(tags).append("]\n");
-            }
-            return sb.toString().trim();
-        }
-        if (action.equalsIgnoreCase("show-zombies")) {
-            List<String> observed = currentUser.getObservedZombies();
-            if (observed.isEmpty()) {
-                return "You have not observed any zombies yet.";
-            }
-            StringBuilder sb = new StringBuilder("Observed zombies:\n");
-            for (String zombie : observed) {
-                sb.append("- ").append(zombie).append("\n");
-            }
-            return sb.toString().trim();
-        }
-        if (action.equalsIgnoreCase("show-all-zombies")) {
-            StringBuilder sb = new StringBuilder("All game zombies:\n");
-            for (Zombie zombie : allZombies) {
-                sb.append("- ").append(zombie.getName()).append("\n");
-            }
-            return sb.toString().trim();
-        }
-        if (action.equalsIgnoreCase("show-plant")) {
-            String plantName = cmd.getArg("-p");
-            Plant targetPlant = null;
-            for (Plant p : allPlants) {
-                if (p.getName().equalsIgnoreCase(plantName)) {
-                    targetPlant = p;
-                    break;
-                }
-            }
-            if (targetPlant == null) {
-                return "Error: Plant not found in game data.";
-            }
-            StringBuilder sb = new StringBuilder();
-            sb.append("Plant: ").append(targetPlant.getName()).append("\n");
-            sb.append("Category: ").append(targetPlant.getCategory()).append("\n");
-            sb.append("Tags: ").append(targetPlant.getTags() != null ? String.join(", ", targetPlant.getTags()) : "None").append("\n");
-            sb.append("Sun Cost: ").append(targetPlant.getCost()).append("\n");
-            sb.append("HP: ").append(targetPlant.getHealth()).append("\n");
-            sb.append("Shoot Behavior: ").append(targetPlant.getShootBehavior());
-            if (targetPlant.getCooldown() > 0) {
-                sb.append("\nCooldown: ").append(targetPlant.getCooldown()).append("s");
-            }
-            if (targetPlant.getSunProduce() > 0) {
-                sb.append("\nSun Produce: ").append(targetPlant.getSunProduce());
-            }
-            return sb.toString();
-        }
-        if (action.equalsIgnoreCase("show-zombie")) {
-            String zombieName = cmd.getArg("-z");
-            Zombie targetZombie = null;
-            for (Zombie z : allZombies) {
-                if (z.getName().equalsIgnoreCase(zombieName)) {
-                    targetZombie = z;
-                    break;
-                }
-            }
-            if (targetZombie == null) {
-                return "Error: Zombie not found in game data.";
-            }
-            StringBuilder sb = new StringBuilder();
-            sb.append("Zombie: ").append(targetZombie.getName()).append("\n");
-            sb.append("HP: ").append(targetZombie.getHealth()).append("\n");
-            sb.append("Speed: ").append(targetZombie.getSpeed()).append("\n");
-            sb.append("Damage: ").append(targetZombie.getDamage());
-            return sb.toString();
-        }
-        if (action.equalsIgnoreCase("upgrade-plant")) {
-            String target = cmd.getArg("-p");
-            int currentLevel = currentUser.getPlantLevels().getOrDefault(target, 1);
-            int upgradeCost = currentLevel * 1000;
-            if (currentUser.getCoins() < upgradeCost) {
-                return "Error: Insufficient coins. Required: " + upgradeCost + ", You have: " + currentUser.getCoins();
-            }
-            currentUser.setCoins(currentUser.getCoins() - upgradeCost);
-            currentUser.getPlantLevels().put(target, currentLevel + 1);
-            FileManager.updateUser(currentUser);
-            return "Plant " + target + " upgraded to Level " + (currentLevel + 1) + " successfully!";
-        }
-        if (action.equalsIgnoreCase("purchase-plant")) {
-            String target = cmd.getArg("-p");
-            if (target == null) return "Error: Please specify plant with -p <plant_name>";
-
-            // Clean quotes and spaces
-            target = target.replaceAll("^\"|\"$", "").trim();
-            final String cleanTarget = target;
-
-            Plant dbPlant = allPlants.stream()
-                    .filter(p -> p.getName().replace(" ", "").replace("-", "")
-                            .equalsIgnoreCase(cleanTarget.replace(" ", "").replace("-", "")))
-                    .findFirst().orElse(null);
-
-            if (dbPlant == null) {
-                return "Error: Plant not found in game data.";
-            }
-
-            String realName = dbPlant.getName();
-
-            boolean alreadyUnlocked = currentUser.getUnlockedPlants().stream()
-                    .anyMatch(p -> p.replace(" ", "").replace("-", "").replace("\"", "")
-                            .equalsIgnoreCase(realName.replace(" ", "").replace("-", "")));
-
-            if (alreadyUnlocked) {
-                return "Error: You already own this plant.";
-            }
-            if (currentUser.getCoins() < 2000) {
-                return "Error: Not enough coins. Cost is 2000. You have: " + currentUser.getCoins();
-            }
-
-            currentUser.setCoins(currentUser.getCoins() - 2000);
-            currentUser.getUnlockedPlants().add(realName);
-            currentUser.getPlantLevels().put(realName, 1);
-            addNews("New plant unlocked: " + realName + "! Check your collection.");
-            FileManager.updateUser(currentUser);
-            return "Plant " + realName + " purchased successfully for 2000 coins!";
-        }
-        return "error";
+        return collectionController.processCollection(cmd, action);
     }
+
     public void handleLeaderboardMenuInput(String input) {
         if (input.equalsIgnoreCase("back")) {
-            MenuManager.getInstance().setCurrentMenu(new MainMenu(this));
+            MenuManager.getInstance().setCurrentMenu(new PlayMenu(this));
             return;
         }
-
         ParsedCommand cmd = parser.parse(input);
-        String action = cmd.getAction();
-
-        if (action.equalsIgnoreCase("menu leaderboard") || action.equalsIgnoreCase("show")) {
-            List<User> allUsers = FileManager.loadUsers();
-            Leaderboard leaderboard = new Leaderboard();
-            for (User u : allUsers) {
-                leaderboard.addUser(u);
-            }
-
-            String sortBy = cmd.getArg("-s");
-            String order = cmd.getArg("-o");
-
-            Leaderboard.SortType sortType = Leaderboard.SortType.BY_TOTAL_SCORE;
-            boolean isAscending = false;
-
-            if (sortBy != null) {
-                switch (sortBy.toLowerCase()) {
-                    case "level":
-                        sortType = Leaderboard.SortType.BY_LEVEL;
-                        break;
-                    case "minigame":
-                        sortType = Leaderboard.SortType.BY_MINI_GAMES;
-                        break;
-                    case "dailyquest":
-                        sortType = Leaderboard.SortType.BY_DAILY_QUESTS;
-                        break;
-                    case "nondailyquest":
-                        sortType = Leaderboard.SortType.BY_NON_DAILY_QUESTS;
-                        break;
-                    case "scoring":
-                        sortType = Leaderboard.SortType.BY_SCORING_GAME;
-                        break;
-                    case "score":
-                    default:
-                        sortType = Leaderboard.SortType.BY_TOTAL_SCORE;
-                        break;
-                }
-            }
-
-            if (order != null && (order.equalsIgnoreCase("asc") || order.equalsIgnoreCase("ascending"))) {
-                isAscending = true;
-            }
-
-            leaderboard.setSortType(sortType, isAscending);
-            List<User> sortedList = leaderboard.getSortedUsers();
-
-            view.showMessage("\n======================================== GLOBAL LEADERBOARD ========================================");
-            String header = String.format("%-4s | %-12s | %-11s | %-10s | %-9s | %-12s | %-16s | %-12s",
-                    "Rank", "Username", "Total Score", "Last Level", "Minigames", "Daily Quests", "Non-Daily Quests", "Scoring High");
-            view.showMessage(header);
-            view.showMessage("----------------------------------------------------------------------------------------------------");
-
-            int rank = 1;
-            for (User u : sortedList) {
-                String levelStr = "S" + u.getLastSeasonCompleted() + "-L" + u.getLastLevelCompleted();
-                String row = String.format("%-4d | %-12s | %-11d | %-10s | %-9d | %-12d | %-16d | %-12d",
-                        rank,
-                        u.getUsername(),
-                        u.getScore(),
-                        levelStr,
-                        u.getCompletedMiniGames(),
-                        u.getCompletedDailyQuests(),
-                        u.getCompletedNonDailyQuests(),
-                        u.getHighestScoreInScoringGame());
-                view.showMessage(row);
-                rank++;
-            }
-            view.showMessage("====================================================================================================\n");
+        if (cmd.getAction().equalsIgnoreCase("menu leaderboard") || cmd.getAction().equalsIgnoreCase("show")) {
+            leaderboardController.handleLeaderboardMenuInput(cmd);
         } else {
             view.showMessage("Unknown command in Leaderboard Menu. Usage: menu leaderboard [-s score/level/minigame/dailyquest/nondailyquest/scoring] [-o asc/desc]");
         }
     }
 
-    // Add this method to MenuController.java
-public String processClaimQuests(ParsedCommand cmd) {
-    User currentUser = UserSession.getCurrentUser();
-    if (currentUser == null) {
-        return "Error: No user logged in.";
+    public String processClaimQuests(ParsedCommand cmd) {
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser == null) {
+            return "Error: No user logged in.";
+        }
+        return currentUser.claimAllCompletedQuests();
     }
-    return currentUser.claimAllCompletedQuests();
-}
 
     public void handleCollectionMenuInput(String input) {
         if (input.equalsIgnoreCase("back")) {
-            MenuManager.getInstance().setCurrentMenu(new MainMenu(this));
+            MenuManager.getInstance().setCurrentMenu(new PlayMenu(this));
             return;
         }
 
         ParsedCommand cmd = parser.parse(input);
         String action = cmd.getAction();
 
-        if (cmd.getAction().equalsIgnoreCase("menu collection show-plants")) {
+        if (action.equalsIgnoreCase("menu collection show-plants")) {
             view.showMessage(processCollection(cmd, "show-plants"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection show-all-plants")) {
+        } else if (action.equalsIgnoreCase("menu collection show-all-plants")) {
             view.showMessage(processCollection(cmd, "show-all-plants"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection show-zombies")) {
+        } else if (action.equalsIgnoreCase("menu collection show-zombies")) {
             view.showMessage(processCollection(cmd, "show-zombies"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection show-all-zombies")) {
+        } else if (action.equalsIgnoreCase("menu collection show-all-zombies")) {
             view.showMessage(processCollection(cmd, "show-all-zombies"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection show-plant")) {
+        } else if (action.equalsIgnoreCase("menu collection show-plant")) {
             view.showMessage(processCollection(cmd, "show-plant"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection show-zombie")) {
+        } else if (action.equalsIgnoreCase("menu collection show-zombie")) {
             view.showMessage(processCollection(cmd, "show-zombie"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection upgrade-plant")) {
+        } else if (action.equalsIgnoreCase("menu collection upgrade-plant")) {
             view.showMessage(processCollection(cmd, "upgrade-plant"));
-        }
-        else if (cmd.getAction().equalsIgnoreCase("menu collection purchase-plant")) {
+        } else if (action.equalsIgnoreCase("menu collection purchase-plant")) {
             view.showMessage(processCollection(cmd, "purchase-plant"));
-        }
-        else {
+        } else {
             view.showMessage("Invalid command inside Collection Menu.");
         }
     }
-
 }

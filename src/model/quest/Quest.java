@@ -1,7 +1,8 @@
 package model.quest;
 
-import model.User;
-import java.util.HashMap;
+import model.user.User;
+import util.FileManager;
+
 import java.util.Map;
 
 public class Quest {
@@ -61,68 +62,66 @@ public class Quest {
         this.variableN = 0;
     }
 
-
-// Add this method to Quest.java
-public void resetProgress() {
-    this.progress = 0;
-    if (this.status == QuestStatus.IN_PROGRESS) {
-        this.status = QuestStatus.AVAILABLE;
+    public void resetProgress() {
+        this.progress = 0;
+        if (this.status == QuestStatus.IN_PROGRESS) {
+            this.status = QuestStatus.AVAILABLE;
+        }
     }
-}
 
     public void applyReward(User user) {
         if (status != QuestStatus.COMPLETED) return;
-        
-        // Apply coin reward
+
         if (rewardCoins > 0) {
             user.setCoins(user.getCoins() + rewardCoins);
         }
-        
-        // Apply diamond reward
+
         if (rewardDiamonds > 0) {
             user.setGems(user.getGems() + rewardDiamonds);
         }
-        
-        // Apply unlockable reward (plant or stage)
+
         if (rewardUnlockable != null && !rewardUnlockable.isEmpty()) {
-            // Check if it's a plant
             if (isPlantName(rewardUnlockable)) {
                 if (!user.getUnlockedPlants().contains(rewardUnlockable)) {
                     user.getUnlockedPlants().add(rewardUnlockable);
                     user.getPlantLevels().put(rewardUnlockable, 1);
                     user.addNews("New plant unlocked: " + rewardUnlockable + "!");
                 }
-            }
-            // Check if it's a stage/level
-            else if (isStageName(rewardUnlockable)) {
+            } else if (isStageName(rewardUnlockable)) {
                 user.addNews("New stage unlocked: " + rewardUnlockable + "!");
             }
         }
-        
-        // Apply seed packet reward
+
         if (rewardSeedPackets > 0 && rewardSeedPlantType != null) {
             Map<String, Integer> packets = user.getSeedPackets();
             int current = packets.getOrDefault(rewardSeedPlantType, 0);
             packets.put(rewardSeedPlantType, current + rewardSeedPackets);
             user.addNews("Received " + rewardSeedPackets + " seed packets for " + rewardSeedPlantType + "!");
         }
-        
+
+        if (type == QuestType.DAILY) {
+            user.setCompletedDailyQuests(user.getCompletedDailyQuests() + 1);
+        } else {
+            user.setCompletedNonDailyQuests(user.getCompletedNonDailyQuests() + 1);
+        }
+
         status = QuestStatus.CLAIMED;
+        FileManager.updateUser(user);
     }
-    
+
     private boolean isPlantName(String name) {
-        String[] plants = {"PeaShooter", "Sunflower", "WallNut", "SnowPea", "Repeater", 
-                           "Threepeater", "Cabbagepult", "Kernelpult", "Melonpult", 
-                           "WinterMelon", "TallNut", "Pumpkin", "CherryBomb", 
-                           "PotatoMine", "Squash", "BonkChoy", "LaserBean", 
-                           "WitchHazel", "LilyPad", "TangleKelp", "HomingThistle", 
-                           "LightningReed", "PuffShroom", "FumeShroom", "SunShroom"};
+        String[] plants = {"PeaShooter", "Sunflower", "WallNut", "SnowPea", "Repeater",
+                "Threepeater", "Cabbagepult", "Kernelpult", "Melonpult",
+                "WinterMelon", "TallNut", "Pumpkin", "CherryBomb",
+                "PotatoMine", "Squash", "BonkChoy", "LaserBean",
+                "WitchHazel", "LilyPad", "TangleKelp", "HomingThistle",
+                "LightningReed", "PuffShroom", "FumeShroom", "SunShroom"};
         for (String p : plants) {
             if (p.equalsIgnoreCase(name)) return true;
         }
         return false;
     }
-    
+
     private boolean isStageName(String name) {
         String[] stages = {"AncientEgypt", "FrostbiteCaves", "BigWaveBeach", "DarkAges"};
         for (String s : stages) {
@@ -136,8 +135,8 @@ public void resetProgress() {
         status = QuestStatus.COMPLETED;
     }
 
-    public void updateProgress(int amount) {
-        if (status == QuestStatus.LOCKED) return;
+    public void updateProgress(int amount, User user) {
+        if (status == QuestStatus.LOCKED || status == QuestStatus.COMPLETED || status == QuestStatus.CLAIMED) return;
         if (status == QuestStatus.AVAILABLE) {
             status = QuestStatus.IN_PROGRESS;
         }
@@ -145,9 +144,14 @@ public void resetProgress() {
         if (progress >= target) {
             complete();
         }
+        if (user != null) {
+            FileManager.updateUser(user);
+        }
     }
 
-    // --- Getters and Setters ---
+    public void updateProgress(int amount) {
+        updateProgress(amount, null);
+    }
 
     public String getId() { return id; }
     public String getTitle() { return title; }
@@ -175,7 +179,7 @@ public void resetProgress() {
     public void setAdditionalCondition(String cond) { this.additionalCondition = cond; }
     public int getVariableN() { return variableN; }
     public void setVariableN(int n) { this.variableN = n; }
-    
+
     public Quest withRewards(int coins, int diamonds, String unlockable, int seedPackets, String seedPlant) {
         this.rewardCoins = coins;
         this.rewardDiamonds = diamonds;

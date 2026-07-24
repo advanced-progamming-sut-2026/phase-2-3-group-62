@@ -1,12 +1,11 @@
 package model.minigame;
 
 import model.Game;
-import model.Tile;
+import model.board.Tile;
 import model.entities.zombie.Zombie;
 import model.entities.plant.Plant;
-import model.entities.plant.factory.PlantFactory;
+
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class Vasebreaker extends MiniGame {

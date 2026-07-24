@@ -1,5 +1,9 @@
 package model.minigame;
 
+import model.user.User;
+import model.user.UserSession;
+import util.FileManager;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +39,14 @@ public class MiniGame {
         }
         currentLevel = Math.max(currentLevel, level + 1);
         timesPlayed++;
+
+        if (UserSession.isLoggedIn() && UserSession.getCurrentUser() != null) {
+            User user = UserSession.getCurrentUser();
+            user.setScore(user.getScore() + 10);
+            user.setCompletedMiniGames(user.getCompletedMiniGames() + 1);
+            user.addNews("Mini-game stage completed! +10 Score added to your profile.");
+            FileManager.updateUser(user);
+        }
     }
 
     public int getLevelBestScore(int level) {
