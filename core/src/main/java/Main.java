@@ -1,0 +1,30 @@
+import controller.menu.MenuController;
+import model.user.Settings;
+import model.user.User;
+import model.user.UserSession;
+import util.FileManager;
+import view.menu.phase1.LoginMenu;
+import view.menu.phase1.MainMenu;
+import view.menu.phase1.MenuManager;
+
+public class Main {
+    public static void main(String[] args) {
+        MenuController controller = new MenuController();
+        MenuManager manager = MenuManager.getInstance();
+
+        Settings settings = FileManager.loadSettings();
+        if (settings.getAutoLoginUsername() != null) {
+            User autoUser = FileManager.getUser(settings.getAutoLoginUsername());
+            if (autoUser != null) {
+                UserSession.setCurrentUser(autoUser);
+                manager.setCurrentMenu(new MainMenu(controller));
+            } else {
+                manager.setCurrentMenu(new LoginMenu(controller));
+            }
+        } else {
+            manager.setCurrentMenu(new LoginMenu(controller));
+        }
+
+        manager.run();
+    }
+}

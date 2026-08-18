@@ -1,0 +1,9 @@
+{
+  "autoLoginUsername": "KianMain",
+  "difficulty": 3,
+  "gameSpeed": 1,
+  "showGrid": false,
+  "debugMode": true,
+  "musicVolume": 0.05,
+  "sfxVolume": 0.2
+}
