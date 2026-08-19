@@ -20,8 +20,10 @@ import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.zombie.Spawner;
 import model.entities.zombie.Zombie;
+import model.entities.zombie.boss.Zomboss;
 import model.enums.SpecialLevelType;
 import model.enums.TileType;
+import model.handler.ZombossAbilityHandler;
 import model.season.AncientEgypt;
 import model.season.FrostbiteCaves;
 import model.season.Season;
@@ -73,6 +75,8 @@ public class GamePlayScreen implements Screen {
     private PlantRenderer plantRenderer;
     private ZombieRenderer zombieRenderer;
     private ProjectileRenderer projectileRenderer;
+    private ZombossRenderer zombossRenderer;
+    private final ZombossAbilityHandler zombossAbilityHandler = new ZombossAbilityHandler();
 
     private GamePlayHud hud;
     private Texture dimNightTexture;
@@ -178,6 +182,7 @@ public class GamePlayScreen implements Screen {
         plantRenderer = new PlantRenderer(pamPlayer);
         zombieRenderer = new ZombieRenderer(pamPlayer, game.getTextureBank());
         projectileRenderer = new ProjectileRenderer(game.getTextureBank(), pamPlayer);
+        zombossRenderer = new ZombossRenderer(pamPlayer);
 
         loadSelectedPlants();
 
@@ -298,7 +303,7 @@ public class GamePlayScreen implements Screen {
         if (modelGame == null || row < 0 || row >= GameGrid.ROWS || col < 0 || col >= GameGrid.COLS) return false;
         Tile t = modelGame.getBoard().getTile(row, col);
         if (t == null) return false;
-        if (t.getType() == TileType.GRAVE || t.isCrater()) return false;
+        if (t.getType() == TileType.GRAVE || t.isCrater() || t.isOnFire()) return false;
         return t.getPlant() == null;
     }
 
@@ -490,6 +495,13 @@ public class GamePlayScreen implements Screen {
             float tickRate = 0.1f;
             while (tickAccumulator >= tickRate) {
                 gameController.advanceTime(1);
+                if (modelGame != null && modelGame.getActiveZombies() != null) {
+                    for (Zombie z : new ArrayList<>(modelGame.getActiveZombies())) {
+                        if (z instanceof Zomboss) {
+                            zombossAbilityHandler.processZomboss((Zomboss) z, modelGame);
+                        }
+                    }
+                }
                 tickAccumulator -= tickRate;
             }
 
@@ -528,6 +540,7 @@ public class GamePlayScreen implements Screen {
         lawnRenderer.renderLawnElements(batch, gameController.getGame(), stateTime);
         plantRenderer.render(batch, gameController.getGame(), stateTime, effectiveDelta);
         zombieRenderer.render(batch, gameController.getGame(), stateTime, effectiveDelta);
+        zombossRenderer.render(batch, gameController.getGame(), stateTime, effectiveDelta);
         projectileRenderer.render(batch, gameController.getGame(), stateTime);
 
         for (WindEffect wind : activeWindEffects) {

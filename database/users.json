@@ -1955,7 +1955,7 @@
     "gender": "MALE",
     "securityQuestion": "2",
     "securityAnswer": "8254c329a92850f6d539dd376f4816ee2764517da5e0235514af433164480d7a",
-    "score": 196714,
+    "score": 197730,
     "news": [
       {
         "content": "New plant unlocked: Sunflower! Check your collection.",
@@ -2232,10 +2232,14 @@
       {
         "content": "New plant unlocked: Pumpkin! Check your collection.",
         "isRead": true
+      },
+      {
+        "content": "Congratulations! Level completed successfully.",
+        "isRead": false
       }
     ],
     "coins": 5530,
-    "gems": 1582,
+    "gems": 1414,
     "unlockedPlants": [
       "PeaShooter",
       "Sunflower",
@@ -3090,8 +3094,8 @@
         "variableN": 20
       }
     ],
-    "lastSeasonCompleted": 1,
-    "lastLevelCompleted": 1,
+    "lastSeasonCompleted": 2,
+    "lastLevelCompleted": 4,
     "completedMiniGames": 0,
     "completedDailyQuests": 13,
     "completedNonDailyQuests": 6,

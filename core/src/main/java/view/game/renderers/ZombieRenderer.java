@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.MathUtils;
 import model.Game;
 import model.entities.ZombieType;
 import model.entities.zombie.Zombie;
+import model.entities.zombie.boss.Zomboss;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
 import view.game.GameGrid;
@@ -52,6 +53,9 @@ public class ZombieRenderer {
     }
 
     public static void triggerDeathAnimation(Zombie zombie, float pixelX, float pixelY) {
+        if (zombie instanceof Zomboss) {
+            return;
+        }
         ZombieType type = ZombieType.fromZombie(zombie);
         dyingZombies.add(new DyingZombie(type, pixelX, pixelY, 1.2f));
     }
@@ -62,9 +66,11 @@ public class ZombieRenderer {
         if (game.getActiveZombies() != null) {
             for (Zombie prevZombie : new ArrayList<>(smoothXPositions.keySet())) {
                 if (!game.getActiveZombies().contains(prevZombie)) {
-                    float px = smoothXPositions.getOrDefault(prevZombie, 0f);
-                    float py = GameGrid.getGridStartY() + ((4 - prevZombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
-                    triggerDeathAnimation(prevZombie, px, py);
+                    if (!(prevZombie instanceof Zomboss)) {
+                        float px = smoothXPositions.getOrDefault(prevZombie, 0f);
+                        float py = GameGrid.getGridStartY() + ((4 - prevZombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
+                        triggerDeathAnimation(prevZombie, px, py);
+                    }
                     smoothXPositions.remove(prevZombie);
                 }
             }
@@ -73,6 +79,10 @@ public class ZombieRenderer {
             float startY = GameGrid.getGridStartY();
 
             for (Zombie zombie : game.getActiveZombies()) {
+                if (zombie instanceof Zomboss) {
+                    continue;
+                }
+
                 zombie.updateCustomAnim(delta);
 
                 ZombieType type = ZombieType.fromZombie(zombie);
@@ -81,10 +91,6 @@ public class ZombieRenderer {
 
                 float targetPixelX = startX + ((float) zombie.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f) + offsetX;
                 float currentPixelX = smoothXPositions.getOrDefault(zombie, targetPixelX);
-
-                if (zombie.isBoss() && Math.abs(targetPixelX - currentPixelX) > 1.5f) {
-                    ScreenShake.shake(3.5f, 0.15f);
-                }
 
                 currentPixelX = MathUtils.lerp(currentPixelX, targetPixelX, Math.min(delta * 12f, 1f));
                 smoothXPositions.put(zombie, currentPixelX);

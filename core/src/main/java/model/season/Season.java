@@ -1,78 +1,57 @@
 package model.season;
 
+import model.Game;
 import model.board.Board;
+import model.entities.plant.Plant;
+import model.entities.zombie.Zombie;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Season {
-    private String name;
-    private int levelCount;
-    private boolean unlocked;
-    private int currentLevel;
-    private List<String> unlockedLevels;
-    private List<String> specialFeatures;
-    private String description;
+    protected String name;
+    protected int currentLevel = 1;
+    protected int maxLevel = 4;
+    protected List<Plant> unlockedPlants = new ArrayList<>();
+    protected List<Zombie> seasonZombies = new ArrayList<>();
 
-    public Season(String name, int levelCount) {
+    public Season(String name, int maxLevel) {
         this.name = name;
-        this.levelCount = levelCount;
-        this.unlocked = false;
-        this.currentLevel = 1;
-        this.unlockedLevels = new ArrayList<>();
-        this.specialFeatures = new ArrayList<>();
-        this.description = "";
-        unlockedLevels.add("level_1");
+        this.maxLevel = maxLevel;
     }
 
-    public Season(String name, int levelCount, String description) {
-        this(name, levelCount);
-        this.description = description;
+    public Season(String name) {
+        this(name, 4);
     }
 
-    public void unlock() {
-        this.unlocked = true;
+    public String getName() {
+        return name;
     }
 
-    public void unlockLevel(int level) {
-        if (level <= levelCount && !unlockedLevels.contains("level_" + level)) {
-            unlockedLevels.add("level_" + level);
+    public int getCurrentLevel() {
+        return currentLevel;
+    }
+
+    public void setCurrentLevel(int level) {
+        if (level >= 1 && level <= maxLevel) {
+            this.currentLevel = level;
         }
     }
 
-    public boolean isLevelUnlocked(int level) {
-        return unlockedLevels.contains("level_" + level) || (unlocked && level <= 1);
+    public int getMaxLevel() {
+        return maxLevel;
     }
 
-    public void completeLevel(int level) {
-        if (level < levelCount) {
-            unlockLevel(level + 1);
-        }
-        currentLevel = Math.max(currentLevel, level + 1);
-    }
-
-    public void addSpecialFeature(String feature) {
-        specialFeatures.add(feature);
-    }
-
-    public boolean hasSpecialFeature(String feature) {
-        return specialFeatures.contains(feature);
-    }
-
-    public String getName() { return name; }
-    public int getLevelCount() { return levelCount; }
-    public boolean isUnlocked() { return unlocked; }
-    public void setUnlocked(boolean unlocked) { this.unlocked = unlocked; }
-    public int getCurrentLevel() { return currentLevel; }
-    public void setCurrentLevel(int currentLevel) { this.currentLevel = currentLevel; }
-    public List<String> getUnlockedLevels() { return new ArrayList<>(unlockedLevels); }
-    public List<String> getSpecialFeatures() { return new ArrayList<>(specialFeatures); }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public void setupEnvironment(model.Game game) {}
-    public void handleWaveStart(model.Game game) {}
-    public void handleTick(model.Game game) {}
-    public int modifySpawnColumn(int currentWave, int totalWaves, int defaultColumn, int zombiesSpawned, Board board, int lane) { return defaultColumn; }
+    public void setupEnvironment(Game game) {}
+    public void handleWaveStart(Game game) {}
+    public void handleTick(Game game) {}
     public boolean allowsNaturalSunDrop() { return true; }
+
+    public int modifySpawnColumn(int currentWave, int totalWaves, int defaultColumn, int zombiesSpawned, Board board, int lane) {
+        return defaultColumn;
+    }
+
+    public String getBackgroundPath() {
+        return "IMAGE_BACKGROUNDS_ZEN_GARDEN";
+    }
 }

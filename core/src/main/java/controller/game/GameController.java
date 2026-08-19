@@ -4,6 +4,7 @@ import controller.menu.Controller;
 import controller.menu.MenuController;
 import model.Game;
 import model.entities.zombie.Zombie;
+import model.entities.zombie.boss.Zomboss;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +14,16 @@ public class GameController extends Controller {
     private boolean cooldownCheatActive = false;
     private final List<String> accumulatedTurnLogs = new ArrayList<>();
 
-
     private final GameActionController actionController = new GameActionController();
     private final MiniGameController miniGameController = new MiniGameController();
 
     public GameController(MenuController controller) {
         super(controller);
+    }
+
+    public GameController(Game game) {
+        super(null);
+        this.game = game;
     }
 
     public Game getGame() {
@@ -49,7 +54,6 @@ public class GameController extends Controller {
         return actionController.advanceTime(game, ticks, accumulatedTurnLogs);
     }
 
-
     public String swapPlants(int x1, int y1, int x2, int y2) {
         return miniGameController.swapPlants(game, x1, y1, x2, y2);
     }
@@ -74,15 +78,17 @@ public class GameController extends Controller {
         return miniGameController.pickupPacket(game, x, y);
     }
 
-
     public String executeNuke() {
         if (game == null) return "Error: No active game session.";
-        int count = game.getActiveZombies().size();
+        List<Zombie> toRemove = new ArrayList<>();
         for (Zombie z : game.getActiveZombies()) {
-            game.getBoard().getTile(z.getY(), (int) z.getX()).setZombie(null);
+            if (!(z instanceof Zomboss)) {
+                game.getBoard().getTile(z.getY(), (int) Math.round(z.getX())).setZombie(null);
+                toRemove.add(z);
+            }
         }
-        game.getActiveZombies().clear();
-        return "Nuke released! " + count + " zombies wiped off the map.";
+        game.getActiveZombies().removeAll(toRemove);
+        return "Nuke released! " + toRemove.size() + " regular zombies wiped off the map. Bosses are immune to nukes!";
     }
 
     public String executeRemoveCooldownCheat() {
@@ -107,5 +113,4 @@ public class GameController extends Controller {
         accumulatedTurnLogs.clear();
         return copy;
     }
-
 }

@@ -6,6 +6,7 @@ import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
 import model.entities.zombie.ZombieEffect;
+import model.entities.zombie.boss.Zomboss;
 import model.minigame.IZombie;
 import model.minigame.WallnutBowling;
 
@@ -21,6 +22,10 @@ public class ZombieInteractionHandler {
         ZombieAbilityHandler abilityHandler = new ZombieAbilityHandler();
 
         for (Zombie zombie : new ArrayList<>(game.getActiveZombies())) {
+            if (zombie instanceof Zomboss) {
+                continue;
+            }
+
             zombie.updateEffects();
             zombie.updateCooldown();
 
@@ -65,7 +70,7 @@ public class ZombieInteractionHandler {
                     } else if ((pName.equalsIgnoreCase("Potato Mine") || pName.equalsIgnoreCase("Primal Potato Mine")) && plant.isArmed()) {
                         int rad = pName.contains("Primal") ? 1 : 0;
                         for (Zombie az : new ArrayList<>(game.getActiveZombies())) {
-                            if (Math.abs(az.getY() - plant.getY()) <= rad && Math.abs(az.getX() - plant.getX()) <= (rad + 0.8)) {
+                            if (!(az instanceof Zomboss) && Math.abs(az.getY() - plant.getY()) <= rad && Math.abs(az.getX() - plant.getX()) <= (rad + 0.8)) {
                                 az.takeDamage(plant.getDamage() > 0 ? plant.getDamage() : 1800, true);
                             }
                         }
@@ -225,7 +230,7 @@ public class ZombieInteractionHandler {
                     if (!mower.isUsed()) {
                         List<Zombie> toKill = new ArrayList<>();
                         for (Zombie z : game.getActiveZombies()) {
-                            if (z.getY() == row) toKill.add(z);
+                            if (!(z instanceof Zomboss) && z.getY() == row) toKill.add(z);
                         }
                         if (!toKill.isEmpty()) {
                             mower.activate();

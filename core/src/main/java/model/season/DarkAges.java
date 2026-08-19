@@ -26,7 +26,7 @@ public class DarkAges extends Season {
 
     @Override
     public void handleWaveStart(Game game) {
-        Board board = board = game.getBoard();
+        Board board = game.getBoard();
         for (int r = 0; r < board.getRows(); r++) {
             for (int c = 0; c < board.getColumns(); c++) {
                 Tile tile = board.getTile(r, c);

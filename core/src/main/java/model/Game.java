@@ -8,6 +8,8 @@ import model.board.Sun;
 import model.entities.plant.Plant;
 import model.entities.zombie.Spawner;
 import model.entities.zombie.Zombie;
+import model.entities.zombie.boss.Zomboss;
+import model.entities.zombie.boss.ZombossType;
 import model.enums.Difficulty;
 import model.enums.SpecialLevelType;
 import model.greenhouse.Greenhouse;
@@ -15,10 +17,11 @@ import model.handler.EnvironmentManager;
 import model.handler.GameStateManager;
 import model.handler.PlantAbilityHandler;
 import model.handler.ZombieInteractionHandler;
+import model.handler.ZombossAbilityHandler;
 import model.level.Level;
 import model.minigame.*;
 import model.score.ScoreGame;
-import model.season.Season;
+import model.season.*;
 import model.user.UserSession;
 
 import java.util.ArrayList;
@@ -60,6 +63,7 @@ public class Game {
 
     private final PlantAbilityHandler plantAbilityHandler = new PlantAbilityHandler();
     private final ZombieInteractionHandler zombieInteractionHandler = new ZombieInteractionHandler();
+    private final ZombossAbilityHandler zombossAbilityHandler = new ZombossAbilityHandler();
     private final EnvironmentManager environmentManager = new EnvironmentManager();
     private final GameStateManager gameStateManager = new GameStateManager();
 
@@ -86,7 +90,6 @@ public class Game {
         this.won = false;
         this.lost = false;
         this.lastSunDropTick = 0;
-        this.currentSeason = new Season("Normal", 10);
         this.conveyorBeltPlants = new ArrayList<>();
         this.seedsToProtect = new ArrayList<>();
         this.zombiesKilledInLevel = 0;
@@ -108,7 +111,6 @@ public class Game {
         } else {
             this.difficulty = Difficulty.NORMAL;
         }
-        this.spawner = new Spawner(board, levelNumber * 2, this.difficulty);
         this.lawnMowers = new LawnMower[rows];
         for (int i = 0; i < rows; i++) {
             lawnMowers[i] = new LawnMower(i);
@@ -119,9 +121,35 @@ public class Game {
         this(rows, columns, levelNumber, difficulty == Difficulty.EASY ? 1 : (difficulty == Difficulty.HARD ? 5 : 3));
     }
 
+    public void setupZombossStage() {
+        activeZombies.removeIf(z -> z instanceof Zomboss);
+
+        ZombossType bType = ZombossType.SPHINX_INATOR;
+        String sName = currentSeason != null ? currentSeason.getName().toLowerCase() : "";
+
+        if (sName.contains("dark")) {
+            bType = ZombossType.DARK_DRAGON;
+        } else if (sName.contains("cave") || sName.contains("frost") || sName.contains("ice")) {
+            bType = ZombossType.TUSKMASTER;
+        } else if (sName.contains("beach")) {
+            bType = ZombossType.SHARKTRONIC;
+        }
+
+        int totalBossHp = 4500 + (difficultyLevel * 1000);
+        Zomboss boss = new Zomboss(bType, totalBossHp);
+        activeZombies.add(boss);
+
+        this.spawner = new Spawner(board, 1, this.difficulty);
+        this.spawner.startWave(1);
+        gameLogMessages.add("WARNING: ZOMBOSS " + bType.getDisplayName() + " HAS ENTERED THE LAWN!");
+    }
+
     public void start() {
         running = true;
-        if (spawner != null) {
+        if (level.getNumber() == 4) {
+            setupZombossStage();
+        } else if (spawner == null) {
+            this.spawner = new Spawner(board, level.getNumber() * 2, this.difficulty);
             spawner.startWave(1);
             gameLogMessages.add("Wave " + spawner.getCurrentWave() + " started.");
         }
@@ -133,6 +161,10 @@ public class Game {
 
     public void setupSpecialLevelFeatures() {
         if (level == null) return;
+        if (level.getNumber() == 4) {
+            level.setSpecialLevelType(SpecialLevelType.CONVEYOR_BELT);
+            return;
+        }
         SpecialLevelType type = level.getSpecialLevelType();
         if (type == SpecialLevelType.SAVE_OUR_SEEDS) {
             for (int[] pos : level.getSeedProtectionPositions()) {
@@ -209,9 +241,15 @@ public class Game {
         plantAbilityHandler.updatePlantsAndAbilities(this);
         zombieInteractionHandler.processZombiesTick(this);
 
+        for (Zombie z : new ArrayList<>(activeZombies)) {
+            if (z instanceof Zomboss) {
+                zombossAbilityHandler.processZomboss((Zomboss) z, this);
+            }
+        }
+
         if (lost || won || !running) return;
 
-        if (spawner != null) {
+        if (spawner != null && level.getNumber() != 4) {
             if (!((specialType == SpecialLevelType.PLANT_WHAT_YOU_GET && !zombieWavesStarted) || activeMiniGame instanceof Vasebreaker || activeMiniGame instanceof IZombie || activeMiniGame instanceof Beghoul)) {
                 Zombie newlySpawned = spawner.update();
                 if (newlySpawned != null) {
@@ -279,7 +317,10 @@ public class Game {
 
     public boolean hasZombieInRow(int row) {
         for (Zombie z : activeZombies) {
-            if (!z.isHypnotized() && z.getY() == row) return true;
+            if (!z.isHypnotized()) {
+                if (z instanceof Zomboss && ((Zomboss) z).occupiesRow(row)) return true;
+                if (z.getY() == row) return true;
+            }
         }
         return false;
     }
@@ -287,19 +328,24 @@ public class Game {
     public Zombie getFirstZombieInRowAhead(int row, double x) {
         Zombie closest = null;
         for (Zombie z : activeZombies) {
-            if (!z.isHypnotized() && z.getY() == row && z.getX() >= x) {
-                if (closest == null || z.getX() < closest.getX()) {
-                    closest = z;
+            if (!z.isHypnotized()) {
+                boolean inRow = (z instanceof Zomboss) ? ((Zomboss) z).occupiesRow(row) : (z.getY() == row);
+                if (inRow && z.getX() >= x) {
+                    if (closest == null || z.getX() < closest.getX()) {
+                        closest = z;
+                    }
                 }
             }
         }
         return closest;
     }
+
     public void addGameLogMessage(String message) {
         if (message != null && !message.isEmpty()) {
             this.gameLogMessages.add(message);
         }
     }
+
     public Plant getPlantAt(int x, int y) {
         for (Plant p : activePlants) {
             if (p.getX() == x && p.getY() == y) return p;

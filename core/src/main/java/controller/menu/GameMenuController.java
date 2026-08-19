@@ -31,8 +31,15 @@ public class GameMenuController extends Controller {
         Settings settings = FileManager.loadSettings();
         int diffVal = settings != null ? settings.getDifficulty() : 3;
 
-        this.game = new Game(5, 9, 1, diffVal);
         String ch = PreGameController.activeChapterName;
+        int levelNum = 1;
+        if (ch != null) {
+            if (ch.endsWith("4")) levelNum = 4;
+            else if (ch.endsWith("3")) levelNum = 3;
+            else if (ch.endsWith("2")) levelNum = 2;
+        }
+
+        this.game = new Game(5, 9, levelNum, diffVal);
 
         if (ch != null && ch.endsWith("_MG")) {
             MiniGame mg = null;
@@ -59,6 +66,7 @@ public class GameMenuController extends Controller {
                 season = new AncientEgypt();
                 if (ch.endsWith("2")) this.game.getLevel().setSpecialLevelType(SpecialLevelType.CONVEYOR_BELT);
                 else if (ch.endsWith("3")) this.game.getLevel().setSpecialLevelType(SpecialLevelType.DEAD_LINE);
+                else if (ch.endsWith("4")) this.game.getLevel().setSpecialLevelType(SpecialLevelType.NONE);
                 else this.game.getLevel().setSpecialLevelType(SpecialLevelType.NIGHT_OPS);
             } else if (ch.startsWith("FrostbiteCaves")) {
                 season = new FrostbiteCaves();

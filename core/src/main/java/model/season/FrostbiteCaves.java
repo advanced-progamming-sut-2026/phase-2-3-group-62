@@ -12,13 +12,11 @@ public class FrostbiteCaves extends Season {
     private final List<Integer> lastChilledRows = new ArrayList<>();
 
     public FrostbiteCaves() {
-        super("FrostbiteCaves", 15);
+        super("FrostbiteCaves", 4);
     }
 
     @Override
     public void setupEnvironment(Game game) {
-        // موقعیت‌های ثابت و استاندارد کاشی‌های لغزنده طبق فاز یک
-        // ردیف 1 به سمت پایین (+1)، ردیف 3 به سمت بالا (-1)
         if (game.getBoard() != null) {
             game.getBoard().setupSlideway(1, 4, 1);
             game.getBoard().setupSlideway(3, 4, -1);

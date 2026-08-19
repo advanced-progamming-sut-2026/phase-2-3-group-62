@@ -22,8 +22,12 @@ import main.Maini;
 import model.Game;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
-import model.enums.SpecialLevelType;
 import model.entities.zombie.Spawner;
+import model.entities.zombie.Zombie;
+import model.entities.zombie.boss.Zomboss;
+import model.enums.SpecialLevelType;
+import model.minigame.MiniGame;
+import model.season.Season;
 import model.user.Settings;
 import model.user.User;
 import model.user.UserSession;
@@ -64,6 +68,11 @@ public class GamePlayHud {
     private Texture progressTrackTexture;
     private Texture progressFillTexture;
 
+    private Texture bossBarFrameTexture;
+    private Texture bossSegmentFillTexture;
+    private WidgetGroup bossHealthBarGroup;
+    private final Image[] bossSegments = new Image[3];
+
     private Label sunCountLabel;
     private Label plantFoodLabel;
     private Label missionTitleLabel;
@@ -72,6 +81,7 @@ public class GamePlayHud {
     private Table pauseOverlay;
     private GameOverOverlay gameOverOverlay;
 
+    private WidgetGroup normalProgressBarGroup;
     private Image progressFillImage;
     private Group flagGroup;
     private static final float PROGRESS_BAR_WIDTH = 540f;
@@ -121,6 +131,44 @@ public class GamePlayHud {
         pauseDialogBgTexture = createRoundedRectangleTexture(new Color(0.24f, 0.14f, 0.08f, 0.98f));
         progressTrackTexture = createProgressTrackTexture(PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
         progressFillTexture = createProgressFillTexture();
+
+        bossBarFrameTexture = createBossBarTrackTexture(560f, 44f);
+        bossSegmentFillTexture = createBossSegmentTexture();
+    }
+
+    private Texture createBossBarTrackTexture(float width, float height) {
+        int w = (int) width;
+        int h = (int) height;
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.12f, 0.12f, 0.14f, 0.95f);
+        pixmap.fillRectangle(0, 0, w, h);
+        pixmap.setColor(0.35f, 0.35f, 0.38f, 1f);
+        pixmap.drawRectangle(0, 0, w, h);
+        pixmap.drawRectangle(1, 1, w - 2, h - 2);
+
+        int segW = (w - 16) / 3;
+        pixmap.setColor(0.04f, 0.04f, 0.05f, 1f);
+        for (int i = 0; i < 3; i++) {
+            pixmap.fillRectangle(4 + (i * (segW + 4)), 4, segW, h - 8);
+        }
+        Texture tex = new Texture(pixmap);
+        pixmap.dispose();
+        return tex;
+    }
+
+    private Texture createBossSegmentTexture() {
+        int w = 1;
+        int h = 30;
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < h; y++) {
+            float t = (float) y / (float) h;
+            float r = 0.85f + 0.15f * (1f - Math.abs(t - 0.5f) * 2f);
+            pixmap.setColor(r, 0.12f, 0.12f, 1f);
+            pixmap.drawPixel(0, y);
+        }
+        Texture tex = new Texture(pixmap);
+        pixmap.dispose();
+        return tex;
     }
 
     private Texture createProgressTrackTexture(float width, float height) {
@@ -285,26 +333,49 @@ public class GamePlayHud {
         Table bottomHud = new Table();
         bottomHud.center();
 
-        WidgetGroup progressCustomGroup = new WidgetGroup();
-        progressCustomGroup.setSize(PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
+        normalProgressBarGroup = new WidgetGroup();
+        normalProgressBarGroup.setSize(PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
 
         Image progressBg = new Image(new TextureRegionDrawable(progressTrackTexture));
         progressBg.setBounds(0, 0, PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
         progressBg.setScaling(Scaling.stretch);
         progressBg.setTouchable(Touchable.disabled);
-        progressCustomGroup.addActor(progressBg);
+        normalProgressBarGroup.addActor(progressBg);
 
         progressFillImage = new Image(new TextureRegionDrawable(progressFillTexture));
         progressFillImage.setBounds(PROGRESS_BAR_WIDTH - BORDER_PADDING, BORDER_PADDING, 0, FILL_HEIGHT);
         progressFillImage.setTouchable(Touchable.disabled);
-        progressCustomGroup.addActor(progressFillImage);
+        normalProgressBarGroup.addActor(progressFillImage);
 
         flagGroup = new Group();
         flagGroup.setBounds(0, 0, PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
         flagGroup.setTouchable(Touchable.disabled);
-        progressCustomGroup.addActor(flagGroup);
+        normalProgressBarGroup.addActor(flagGroup);
 
-        bottomHud.add(progressCustomGroup).size(PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT).padBottom(16);
+        bossHealthBarGroup = new WidgetGroup();
+        bossHealthBarGroup.setSize(560f, 44f);
+        bossHealthBarGroup.setVisible(false);
+
+        Image bossBg = new Image(new TextureRegionDrawable(bossBarFrameTexture));
+        bossBg.setBounds(0, 0, 560f, 44f);
+        bossBg.setScaling(Scaling.stretch);
+        bossBg.setTouchable(Touchable.disabled);
+        bossHealthBarGroup.addActor(bossBg);
+
+        float segW = (560f - 16f) / 3f;
+        for (int i = 0; i < 3; i++) {
+            bossSegments[i] = new Image(new TextureRegionDrawable(bossSegmentFillTexture));
+            bossSegments[i].setBounds(4f + (i * (segW + 4f)), 4f, segW, 36f);
+            bossSegments[i].setScaling(Scaling.stretch);
+            bossSegments[i].setTouchable(Touchable.disabled);
+            bossHealthBarGroup.addActor(bossSegments[i]);
+        }
+
+        Stack bottomBarStack = new Stack();
+        bottomBarStack.add(normalProgressBarGroup);
+        bottomBarStack.add(bossHealthBarGroup);
+
+        bottomHud.add(bottomBarStack).size(560f, 44f).padBottom(16);
         root.add(bottomHud).fillX().bottom().center();
 
         buildPauseOverlay();
@@ -526,28 +597,63 @@ public class GamePlayHud {
             card.updateCooldownState(cd, curSun);
         }
 
-        if (mg != null && mg.getSpawner() != null) {
-            Spawner spawner = mg.getSpawner();
-            int totalWaves = Math.max(1, spawner.getTotalWaves());
-            int currentWave = Math.max(1, spawner.getCurrentWave());
-
-            if (currentWave != currentTrackedWave) {
-                currentTrackedWave = currentWave;
-                timeInCurrentWave = 0f;
-            } else {
-                timeInCurrentWave += (delta * speedMultiplier);
+        Zomboss activeBoss = null;
+        if (mg != null && mg.getActiveZombies() != null) {
+            for (Zombie z : mg.getActiveZombies()) {
+                if (z instanceof Zomboss) {
+                    activeBoss = (Zomboss) z;
+                    break;
+                }
             }
+        }
 
-            float waveLocalFraction = Math.min(1.0f, timeInCurrentWave / ESTIMATED_WAVE_DURATION);
-            float targetFraction = ((currentWave - 1) + waveLocalFraction) / (float) totalWaves;
-            targetFraction = Math.min(1.0f, Math.max(0f, targetFraction));
+        if (activeBoss != null) {
+            normalProgressBarGroup.setVisible(false);
+            bossHealthBarGroup.setVisible(true);
 
-            continuousProgressFraction = continuousProgressFraction + (targetFraction - continuousProgressFraction) * Math.min(delta * 4f, 1f);
+            int phase = activeBoss.getCurrentPhase();
+            float segW = (560f - 16f) / 3f;
+            float currentPhaseRatio = (float) activeBoss.getPhaseCurrentHealth() / (float) activeBoss.getPhaseMaxHealth();
 
-            if (progressFillImage != null) {
-                float currentWidth = MAX_FILL_WIDTH * continuousProgressFraction;
-                float startX = (PROGRESS_BAR_WIDTH - BORDER_PADDING) - currentWidth;
-                progressFillImage.setBounds(startX, BORDER_PADDING, currentWidth, FILL_HEIGHT);
+            for (int i = 0; i < 3; i++) {
+                int segPhaseIndex = 3 - i;
+                if (phase < segPhaseIndex) {
+                    bossSegments[i].setVisible(true);
+                    bossSegments[i].setBounds(4f + (i * (segW + 4f)), 4f, segW, 36f);
+                } else if (phase == segPhaseIndex) {
+                    bossSegments[i].setVisible(true);
+                    bossSegments[i].setBounds(4f + (i * (segW + 4f)), 4f, segW * currentPhaseRatio, 36f);
+                } else {
+                    bossSegments[i].setVisible(false);
+                }
+            }
+        } else {
+            normalProgressBarGroup.setVisible(true);
+            bossHealthBarGroup.setVisible(false);
+
+            if (mg != null && mg.getSpawner() != null) {
+                Spawner spawner = mg.getSpawner();
+                int totalWaves = Math.max(1, spawner.getTotalWaves());
+                int currentWave = Math.max(1, spawner.getCurrentWave());
+
+                if (currentWave != currentTrackedWave) {
+                    currentTrackedWave = currentWave;
+                    timeInCurrentWave = 0f;
+                } else {
+                    timeInCurrentWave += (delta * speedMultiplier);
+                }
+
+                float waveLocalFraction = Math.min(1.0f, timeInCurrentWave / ESTIMATED_WAVE_DURATION);
+                float targetFraction = ((currentWave - 1) + waveLocalFraction) / (float) totalWaves;
+                targetFraction = Math.min(1.0f, Math.max(0f, targetFraction));
+
+                continuousProgressFraction = continuousProgressFraction + (targetFraction - continuousProgressFraction) * Math.min(delta * 4f, 1f);
+
+                if (progressFillImage != null) {
+                    float currentWidth = MAX_FILL_WIDTH * continuousProgressFraction;
+                    float startX = (PROGRESS_BAR_WIDTH - BORDER_PADDING) - currentWidth;
+                    progressFillImage.setBounds(startX, BORDER_PADDING, currentWidth, FILL_HEIGHT);
+                }
             }
         }
     }
@@ -585,27 +691,60 @@ public class GamePlayHud {
             plantFoodLabel.setText(modelGame.getPlantFoodCount() + "/3");
         }
 
-        SpecialLevelType type = modelGame.getLevel().getSpecialLevelType();
         if (missionTitleLabel != null && missionDetailLabel != null) {
-            if (type == SpecialLevelType.TIMED_WAR) {
-                missionTitleLabel.setText("TIMED WAR");
-                int remainingTicks = Math.max(0, modelGame.getLevel().getTimeLimitTicks() - modelGame.getTickCount());
-                int remainingSec = remainingTicks / 10;
-                missionDetailLabel.setText("Time: " + remainingSec + "s | Kills: "
-                    + modelGame.getZombiesKilledInLevel() + "/" + modelGame.getLevel().getTargetZombiesToKill()
-                    + " | Sun: " + modelGame.getSunCount() + "/" + modelGame.getLevel().getTargetSunsToProduce());
-            } else if (type == SpecialLevelType.DEAD_LINE) {
-                missionTitleLabel.setText("DEADLINE MODE");
-                missionDetailLabel.setText("Defend line at Col " + modelGame.getLevel().getDeadlineColumn());
-            } else if (type == SpecialLevelType.SAVE_OUR_SEEDS) {
-                missionTitleLabel.setText("SAVE OUR SEEDS");
-                missionDetailLabel.setText("Protect endangered plants!");
-            } else if (type == SpecialLevelType.NIGHT_OPS) {
-                missionTitleLabel.setText("NIGHT OPS");
-                missionDetailLabel.setText("No natural sun falls from sky.");
+            Zomboss activeBoss = null;
+            if (modelGame.getActiveZombies() != null) {
+                for (Zombie z : modelGame.getActiveZombies()) {
+                    if (z instanceof Zomboss) {
+                        activeBoss = (Zomboss) z;
+                        break;
+                    }
+                }
+            }
+
+            if (modelGame.getLevel() != null && modelGame.getLevel().getNumber() == 4) {
+                Season season = modelGame.getCurrentSeason();
+                String seasonName = season != null ? season.getName().toUpperCase() : "CHAPTER";
+                missionTitleLabel.setText(seasonName + " - LEVEL 4 (BOSS FIGHT)");
+
+                if (activeBoss != null) {
+                    missionDetailLabel.setText(activeBoss.getName().toUpperCase() + " [PHASE " + activeBoss.getCurrentPhase() + "/3]");
+                } else {
+                    missionDetailLabel.setText("DEFEAT DR. ZOMBOSS TO WIN!");
+                }
+            } else if (modelGame.getActiveMiniGame() != null) {
+                MiniGame mg = modelGame.getActiveMiniGame();
+                missionTitleLabel.setText("MINI-GAME: " + mg.getName().toUpperCase());
+                missionDetailLabel.setText("Complete mini-game objectives!");
             } else {
-                missionTitleLabel.setText("ADVENTURE");
-                missionDetailLabel.setText("Defend your brains!");
+                SpecialLevelType type = modelGame.getLevel() != null ? modelGame.getLevel().getSpecialLevelType() : SpecialLevelType.NONE;
+                Season season = modelGame.getCurrentSeason();
+                String seasonName = season != null ? season.getName().toUpperCase() : "ADVENTURE";
+                int lvlNum = modelGame.getLevel() != null ? modelGame.getLevel().getNumber() : 1;
+
+                if (type == SpecialLevelType.TIMED_WAR) {
+                    missionTitleLabel.setText(seasonName + " - LEVEL " + lvlNum + " [TIMED WAR]");
+                    int remainingTicks = Math.max(0, modelGame.getLevel().getTimeLimitTicks() - modelGame.getTickCount());
+                    int remainingSec = remainingTicks / 10;
+                    missionDetailLabel.setText("Time: " + remainingSec + "s | Kills: "
+                        + modelGame.getZombiesKilledInLevel() + "/" + modelGame.getLevel().getTargetZombiesToKill()
+                        + " | Sun: " + modelGame.getSunCount() + "/" + modelGame.getLevel().getTargetSunsToProduce());
+                } else if (type == SpecialLevelType.DEAD_LINE) {
+                    missionTitleLabel.setText(seasonName + " - LEVEL " + lvlNum + " [DEADLINE MODE]");
+                    missionDetailLabel.setText("Defend line at Col " + modelGame.getLevel().getDeadlineColumn());
+                } else if (type == SpecialLevelType.SAVE_OUR_SEEDS) {
+                    missionTitleLabel.setText(seasonName + " - LEVEL " + lvlNum + " [SAVE OUR SEEDS]");
+                    missionDetailLabel.setText("Protect endangered plants!");
+                } else if (type == SpecialLevelType.NIGHT_OPS) {
+                    missionTitleLabel.setText(seasonName + " - LEVEL " + lvlNum + " [NIGHT OPS]");
+                    missionDetailLabel.setText("No natural sun falls from sky.");
+                } else if (type == SpecialLevelType.CONVEYOR_BELT) {
+                    missionTitleLabel.setText(seasonName + " - LEVEL " + lvlNum + " [CONVEYOR BELT]");
+                    missionDetailLabel.setText("Plant incoming seeds from belt!");
+                } else {
+                    missionTitleLabel.setText(seasonName + " - LEVEL " + lvlNum);
+                    missionDetailLabel.setText("Defend your brains!");
+                }
             }
         }
 
@@ -741,6 +880,8 @@ public class GamePlayHud {
         if (pauseDialogBgTexture != null) pauseDialogBgTexture.dispose();
         if (progressTrackTexture != null) progressTrackTexture.dispose();
         if (progressFillTexture != null) progressFillTexture.dispose();
+        if (bossBarFrameTexture != null) bossBarFrameTexture.dispose();
+        if (bossSegmentFillTexture != null) bossSegmentFillTexture.dispose();
         if (gameOverOverlay != null) gameOverOverlay.dispose();
     }
 }

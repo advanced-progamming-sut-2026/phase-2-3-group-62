@@ -26,6 +26,7 @@ import model.game.ChapterType;
 import model.user.User;
 import model.user.UserSession;
 import pvz.libpvz.pam.PamPlayer;
+import view.audio.AudioManager;
 import view.ui.CheatWidget;
 import view.ui.PamActor;
 import view.ui.Toast;
@@ -68,7 +69,7 @@ public class LevelSelectScreen implements Screen {
             pamPlayer = new PamPlayer(game.getTextureBank(), Gdx.files.absolute("assets"));
         }
 
-        roundedBrownBgTexture = createRoundedRectangleTexture(1180, 320, 24, new Color(0.18f, 0.11f, 0.06f, 0.96f));
+        roundedBrownBgTexture = createRoundedRectangleTexture(1220, 320, 24, new Color(0.18f, 0.11f, 0.06f, 0.96f));
 
         buildUI();
     }
@@ -138,6 +139,8 @@ public class LevelSelectScreen implements Screen {
         nodeTable.setTransform(true);
         nodeTable.setTouchable(Touchable.enabled);
 
+        boolean isBoss = (levelNum == 4);
+
         PamActor pamActor = new PamActor(
             pamPlayer,
             chapter.getNodePamPath(),
@@ -151,6 +154,8 @@ public class LevelSelectScreen implements Screen {
 
         if (!isUnlocked) {
             pamActor.setColor(0.4f, 0.4f, 0.4f, 0.75f);
+        } else if (isBoss) {
+            pamActor.setColor(1f, 0.6f, 0.6f, 1f);
         }
 
         Table badge = new Table();
@@ -160,7 +165,7 @@ public class LevelSelectScreen implements Screen {
             badge.setBackground(new TextureRegionDrawable(badgeRegion));
         }
 
-        String labelText = "Day " + levelNum;
+        String labelText = isBoss ? "Boss" : ("Day " + levelNum);
         if (!isUnlocked) {
             labelText += " [Locked]";
         } else if (isCompleted) {
@@ -175,6 +180,8 @@ public class LevelSelectScreen implements Screen {
             levelLabel.setColor(Color.GRAY);
         } else if (isCompleted) {
             levelLabel.setColor(Color.GREEN);
+        } else if (isBoss) {
+            levelLabel.setColor(Color.MAGENTA);
         } else {
             levelLabel.setColor(new Color(0.9f, 0.95f, 1f, 1f));
         }
@@ -218,7 +225,7 @@ public class LevelSelectScreen implements Screen {
                     }
                     if (defaultY != -1 && isUnlocked) {
                         pamActor.setHovered(false);
-                        levelLabel.setColor(isCompleted ? Color.GREEN : new Color(0.9f, 0.95f, 1f, 1f));
+                        levelLabel.setColor(isCompleted ? Color.GREEN : (isBoss ? Color.MAGENTA : new Color(0.9f, 0.95f, 1f, 1f)));
                         nodeTable.clearActions();
                         nodeTable.addAction(Actions.parallel(
                             Actions.scaleTo(1f, 1f, 0.1f),
@@ -233,9 +240,11 @@ public class LevelSelectScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (!isUnlocked) {
+                    AudioManager.getInstance().playButtonClick();
                     Toast.show(stage, skin, "This level is locked! Complete previous levels first.", true);
                     return;
                 }
+                AudioManager.getInstance().playButtonClick();
                 launchGameLevel(levelNum);
             }
         });
@@ -255,7 +264,7 @@ public class LevelSelectScreen implements Screen {
         int userSeason = user != null ? user.getLastSeasonCompleted() : 0;
         int userLevel = user != null ? user.getLastLevelCompleted() : 0;
 
-        int levelsCount = 3;
+        int levelsCount = 4;
 
         for (int i = 1; i <= levelsCount; i++) {
             boolean isUnlocked = false;
@@ -272,7 +281,7 @@ public class LevelSelectScreen implements Screen {
                     isUnlocked = true;
                     isCompleted = false;
                 }
-            } else if (chapter.getSeasonIndex() == userSeason + 1 && userLevel >= 3 && i == 1) {
+            } else if (chapter.getSeasonIndex() == userSeason + 1 && userLevel >= 4 && i == 1) {
                 isUnlocked = true;
                 isCompleted = false;
             } else if (chapter.getSeasonIndex() == 1 && userSeason == 0 && userLevel == 0 && i == 1) {
@@ -281,7 +290,7 @@ public class LevelSelectScreen implements Screen {
             }
 
             Table node = createLevelNode(i, isUnlocked, isCompleted);
-            levelsGrid.add(node).width(190).padLeft(35).padRight(35);
+            levelsGrid.add(node).width(190).padLeft(20).padRight(20);
         }
     }
 
@@ -304,6 +313,7 @@ public class LevelSelectScreen implements Screen {
         backBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                AudioManager.getInstance().playButtonClick();
                 changeScreenWithTransition(new PlayScreen(game, controller, skin));
             }
         });
@@ -334,11 +344,11 @@ public class LevelSelectScreen implements Screen {
         }
 
         levelsGrid = new Table();
-        levelsGrid.center().pad(30, 40, 30, 40);
+        levelsGrid.center().pad(30, 20, 30, 20);
         rebuildLevelsGrid();
 
         boxStack.add(levelsGrid);
-        centerWrapper.add(boxStack).size(1180, 320);
+        centerWrapper.add(boxStack).size(1220, 320);
         root.add(centerWrapper).expand().center().padBottom(30).row();
 
         root.addAction(Actions.parallel(

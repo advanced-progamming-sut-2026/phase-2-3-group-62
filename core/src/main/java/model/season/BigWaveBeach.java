@@ -46,23 +46,15 @@ public class BigWaveBeach extends Season {
         game.getGameLogMessages().add("The tide changed! Water level is now " + waterLevel + " columns wide.");
         updateWaterTiles(board);
 
-        for (Plant p : new ArrayList<>(game.getActivePlants())) {
-            Tile t = board.getTile(p.getY(), p.getX());
-            if (t != null && t.getType() == TileType.WATER) {
-                boolean isAquatic = p.isAquatic();
-                boolean hasLilyPad = (t.getSupportPlant() != null && t.getSupportPlant().getName().equalsIgnoreCase("Lily Pad"));
-
-                if (!isAquatic && !hasLilyPad) {
-                    game.getActivePlants().remove(p);
-                    t.setPlant(null);
-                    game.getGameLogMessages().add("Plant " + p.getName() + " drowned in the rising tide!");
-                }
-            }
-        }
+        checkAndDrownPlants(game, "rising tide");
     }
 
     @Override
     public void handleTick(Game game) {
+        checkAndDrownPlants(game, "ocean tide");
+    }
+
+    private void checkAndDrownPlants(Game game, String tideType) {
         Board board = game.getBoard();
         for (Plant p : new ArrayList<>(game.getActivePlants())) {
             Tile t = board.getTile(p.getY(), p.getX());
@@ -73,7 +65,7 @@ public class BigWaveBeach extends Season {
                 if (!isAquatic && !hasLilyPad) {
                     game.getActivePlants().remove(p);
                     t.setPlant(null);
-                    game.getGameLogMessages().add("Plant " + p.getName() + " drowned in the ocean tide!");
+                    game.getGameLogMessages().add("Plant " + p.getName() + " drowned in the " + tideType + "!");
                 }
             }
         }

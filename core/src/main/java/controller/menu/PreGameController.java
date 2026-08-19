@@ -41,6 +41,9 @@ public class PreGameController {
             } else if (lowerCh.equals("ancientegypt3")) {
                 activeChapterName = "AncientEgypt3";
                 seasonNum = 1; levelNum = 3;
+            } else if (lowerCh.equals("ancientegypt4")) {
+                activeChapterName = "AncientEgypt4";
+                seasonNum = 1; levelNum = 4;
             } else if (lowerCh.equals("frostbitecaves") || lowerCh.equals("caves")) {
                 activeChapterName = "FrostbiteCaves";
                 seasonNum = 2; levelNum = 1;
@@ -50,6 +53,9 @@ public class PreGameController {
             } else if (lowerCh.equals("frostbitecaves3")) {
                 activeChapterName = "FrostbiteCaves3";
                 seasonNum = 2; levelNum = 3;
+            } else if (lowerCh.equals("frostbitecaves4")) {
+                activeChapterName = "FrostbiteCaves4";
+                seasonNum = 2; levelNum = 4;
             } else if (lowerCh.equals("bigwavebeach") || lowerCh.equals("beach")) {
                 activeChapterName = "BigWaveBeach";
                 seasonNum = 3; levelNum = 1;
@@ -59,6 +65,9 @@ public class PreGameController {
             } else if (lowerCh.equals("bigwavebeach3")) {
                 activeChapterName = "BigWaveBeach3";
                 seasonNum = 3; levelNum = 3;
+            } else if (lowerCh.equals("bigwavebeach4")) {
+                activeChapterName = "BigWaveBeach4";
+                seasonNum = 3; levelNum = 4;
             } else if (lowerCh.equals("darkages")) {
                 activeChapterName = "DarkAges";
                 seasonNum = 4; levelNum = 1;
@@ -68,6 +77,9 @@ public class PreGameController {
             } else if (lowerCh.equals("darkages3")) {
                 activeChapterName = "DarkAges3";
                 seasonNum = 4; levelNum = 3;
+            } else if (lowerCh.equals("darkages4")) {
+                activeChapterName = "DarkAges4";
+                seasonNum = 4; levelNum = 4;
             } else {
                 return "Error: Unknown chapter name.";
             }
@@ -77,10 +89,12 @@ public class PreGameController {
             FileManager.updateUser(currentUser);
 
             String formattedOutput = activeChapterName;
-            if (activeChapterName.contains("2")) {
-                formattedOutput = activeChapterName.replace("2", "") + " (Level 2)";
+            if (activeChapterName.contains("4")) {
+                formattedOutput = activeChapterName.replace("4", "") + " (Level 4 - Boss)";
             } else if (activeChapterName.contains("3")) {
                 formattedOutput = activeChapterName.replace("3", "") + " (Level 3)";
+            } else if (activeChapterName.contains("2")) {
+                formattedOutput = activeChapterName.replace("2", "") + " (Level 2)";
             } else {
                 formattedOutput = activeChapterName + " (Level 1)";
             }
@@ -121,8 +135,8 @@ public class PreGameController {
 
             String finalPlantName = plantName;
             Plant matchingPlantInDb = PlantLoader.loadPlants().stream()
-                    .filter(p -> normalizeName(p.getName()).equalsIgnoreCase(normalizeName(finalPlantName)))
-                    .findFirst().orElse(null);
+                .filter(p -> normalizeName(p.getName()).equalsIgnoreCase(normalizeName(finalPlantName)))
+                .findFirst().orElse(null);
 
             if (matchingPlantInDb == null) {
                 return "Error: Plant type does not exist in the game.";
@@ -217,7 +231,7 @@ public class PreGameController {
             if (activeChapterName == null) {
                 return "Error: You must select a chapter or minigame first before starting.";
             }
-            if (!activeChapterName.endsWith("_MG") && selectedPlants.isEmpty()) {
+            if (!activeChapterName.endsWith("_MG") && !activeChapterName.contains("4") && selectedPlants.isEmpty()) {
                 return "Error: You must select at least one plant to start the game.";
             }
             return "START_GAME_CONFIRMED";

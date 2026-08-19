@@ -2,7 +2,9 @@ package model.board;
 
 import model.Game;
 import model.entities.zombie.Zombie;
+import model.entities.zombie.boss.Zomboss;
 import model.enums.TileType;
+import model.handler.GameStateManager;
 import model.handler.ZombieAbilityHandler;
 import view.game.renderers.ProjectileRenderer;
 
@@ -36,6 +38,14 @@ public class Board {
         return tiles[row][column];
     }
 
+    public void updateTiles() {
+        for (int row = 0; row < rows; row++) {
+            for (int column = 0; column < columns; column++) {
+                tiles[row][column].updateTile();
+            }
+        }
+    }
+
     public void setTileType(int row, int column, TileType type) {
         Tile tile = getTile(row, column);
         if (tile != null) {
@@ -55,7 +65,7 @@ public class Board {
 
     public boolean isTileGrave(int row, int column) {
         Tile tile = getTile(row, column);
-        return tile != null && tile.getType() == TileType.GRAVE;
+        return tile != null && tile.isGrave();
     }
 
     public boolean isTileGrass(int row, int column) {
@@ -122,6 +132,7 @@ public class Board {
     }
 
     public void updateProjectilesAndCollisions(Game game) {
+        updateTiles();
         List<Bullet> bulletsToRemove = new ArrayList<>();
         List<Bullet> bulletsToAdd = new ArrayList<>();
         List<Zombie> zombiesKilled = new ArrayList<>();
@@ -155,7 +166,7 @@ public class Board {
                 }
             }
 
-            if (tile != null && tile.getType() == TileType.GRAVE && bullet.getType() != Bullet.BulletType.LOB) {
+            if (tile != null && tile.isGrave() && bullet.getType() != Bullet.BulletType.LOB) {
                 if (oldBulletX <= checkTileCol && newBulletX >= checkTileCol) {
                     tile.setGraveHealth(tile.getGraveHealth() - bullet.getDamage());
                     if (!bullet.isPierce()) {
@@ -173,18 +184,29 @@ public class Board {
 
             Zombie targetZombie = null;
             for (Zombie z : game.getActiveZombies()) {
-                if (!z.isHypnotized() && z.getY() == bRow) {
-                    double zombieX = z.getX();
-                    if (newBulletX >= zombieX && oldBulletX <= zombieX + 0.8) {
-                        targetZombie = z;
-                        break;
+                if (!z.isHypnotized()) {
+                    boolean inRow = (z instanceof Zomboss) ? ((Zomboss) z).occupiesRow(bRow) : (z.getY() == bRow);
+                    if (inRow) {
+                        double zombieX = z.getX();
+                        if (newBulletX >= zombieX && oldBulletX <= zombieX + 0.8) {
+                            targetZombie = z;
+                            break;
+                        }
                     }
                 }
             }
 
             if (targetZombie != null) {
                 boolean bypassArmor = (bullet.getType() == Bullet.BulletType.POISON);
-                targetZombie.takeDamage(bullet.getDamage(), bypassArmor);
+                if (targetZombie instanceof Zomboss) {
+                    Zomboss b = (Zomboss) targetZombie;
+                    b.takeBossDamage(bullet.getDamage());
+                    if (!b.isAlive() && !zombiesKilled.contains(b)) {
+                        zombiesKilled.add(b);
+                    }
+                } else {
+                    targetZombie.takeDamage(bullet.getDamage(), bypassArmor);
+                }
                 bullet.incrementHitZombieCount();
 
                 if (bullet.getType() == Bullet.BulletType.ICE) {
@@ -194,13 +216,24 @@ public class Board {
                 if (bullet.isExplosive() && bullet.getSplashRadius() > 0) {
                     int radius = bullet.getSplashRadius();
                     for (Zombie splashZ : new ArrayList<>(game.getActiveZombies())) {
-                        if (splashZ != targetZombie && Math.abs(splashZ.getY() - bRow) <= radius && Math.abs(splashZ.getX() - targetZombie.getX()) <= 1.2) {
-                            splashZ.takeDamage(bullet.getDamage() / 2, false);
-                            if (bullet.getType() == Bullet.BulletType.ICE) {
-                                splashZ.applyChilled(3.0);
-                            }
-                            if (!splashZ.isAlive() && !zombiesKilled.contains(splashZ)) {
-                                zombiesKilled.add(splashZ);
+                        if (splashZ != targetZombie) {
+                            boolean inSplashRow = (splashZ instanceof Zomboss) ? ((Zomboss) splashZ).occupiesRow(bRow) : (Math.abs(splashZ.getY() - bRow) <= radius);
+                            if (inSplashRow && Math.abs(splashZ.getX() - targetZombie.getX()) <= 1.2) {
+                                if (splashZ instanceof Zomboss) {
+                                    Zomboss sb = (Zomboss) splashZ;
+                                    sb.takeBossDamage(bullet.getDamage() / 2);
+                                    if (!sb.isAlive() && !zombiesKilled.contains(sb)) {
+                                        zombiesKilled.add(sb);
+                                    }
+                                } else {
+                                    splashZ.takeDamage(bullet.getDamage() / 2, false);
+                                    if (!splashZ.isAlive() && !zombiesKilled.contains(splashZ)) {
+                                        zombiesKilled.add(splashZ);
+                                    }
+                                }
+                                if (bullet.getType() == Bullet.BulletType.ICE) {
+                                    splashZ.applyChilled(3.0);
+                                }
                             }
                         }
                     }
@@ -213,7 +246,7 @@ public class Board {
                     ProjectileRenderer.triggerStaticImpact(explosionPam, hitPx, hitPy);
                 }
 
-                if (!targetZombie.isAlive() && !zombiesKilled.contains(targetZombie)) {
+                if (!(targetZombie instanceof Zomboss) && !targetZombie.isAlive() && !zombiesKilled.contains(targetZombie)) {
                     String deathMessage = "Zombie of type " + targetZombie.getName() + " is dead at (" + (int) Math.round(targetZombie.getX()) + ", " + targetZombie.getY() + ")";
                     game.getGameLogMessages().add(deathMessage);
                     zombiesKilled.add(targetZombie);
@@ -228,6 +261,7 @@ public class Board {
         }
 
         ZombieAbilityHandler abilityHandler = new ZombieAbilityHandler();
+        boolean bossDefeated = false;
         for (Zombie z : zombiesKilled) {
             game.getActiveZombies().remove(z);
             for (int r = 0; r < getRows(); r++) {
@@ -240,9 +274,19 @@ public class Board {
             abilityHandler.processZombieDeathDrops(z, game);
             game.getScoreGame().onZombieKilled(z, game);
             game.incrementZombiesKilled();
+            if (z instanceof Zomboss) {
+                bossDefeated = true;
+            }
         }
 
         game.getBullets().removeAll(bulletsToRemove);
         game.getBullets().addAll(bulletsToAdd);
+
+        if (bossDefeated) {
+            game.setWon(true);
+            game.stop();
+            game.getGameLogMessages().add("ZOMBOSS DEFEATED! VICTORY!");
+            GameStateManager.handleVictoryStats(game);
+        }
     }
 }

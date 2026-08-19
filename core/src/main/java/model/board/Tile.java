@@ -18,10 +18,12 @@ public class Tile {
     private boolean isLowBeach;
     private boolean isNecromancyTile;
     private Plant supportPlant;
+    private boolean isPlantedWithLilyPad;
 
     private String temporarySeedPacket;
     private int seedPacketTimer;
     private boolean isCrater;
+    private int fireTimerTicks;
 
     public Tile(int row, int column) {
         this.row = row;
@@ -30,10 +32,47 @@ public class Tile {
         this.temporarySeedPacket = null;
         this.seedPacketTimer = 0;
         this.isCrater = false;
+        this.graveHealth = 0;
+        this.sunReward = 0;
+        this.hasPlantFoodReward = false;
+        this.isSlideway = false;
+        this.slideRowOffset = 0;
+        this.isLowBeach = false;
+        this.isNecromancyTile = false;
+        this.isPlantedWithLilyPad = false;
+        this.fireTimerTicks = 0;
+    }
+
+    public void updateTile() {
+        if (fireTimerTicks > 0) {
+            fireTimerTicks--;
+        }
+        if (seedPacketTimer > 0) {
+            seedPacketTimer--;
+            if (seedPacketTimer <= 0) {
+                temporarySeedPacket = null;
+            }
+        }
+    }
+
+    public boolean isOnFire() {
+        return fireTimerTicks > 0;
+    }
+
+    public void ignite(int ticks) {
+        this.fireTimerTicks = ticks;
+        if (this.plant != null) {
+            this.plant.takeDamage(99999);
+            this.plant = null;
+        }
+    }
+
+    public boolean isGrave() {
+        return type == TileType.GRAVE || graveHealth > 0;
     }
 
     public boolean isEmpty() {
-        return plant == null && zombie == null && !isCrater;
+        return plant == null && zombie == null && !isCrater && !isGrave() && !isOnFire();
     }
 
     public int getRow() {
@@ -132,6 +171,14 @@ public class Tile {
         this.supportPlant = supportPlant;
     }
 
+    public boolean isPlantedWithLilyPad() {
+        return isPlantedWithLilyPad;
+    }
+
+    public void setPlantedWithLilyPad(boolean plantedWithLilyPad) {
+        this.isPlantedWithLilyPad = plantedWithLilyPad;
+    }
+
     public String getTemporarySeedPacket() {
         return temporarySeedPacket;
     }
@@ -154,5 +201,13 @@ public class Tile {
 
     public void setCrater(boolean crater) {
         isCrater = crater;
+    }
+
+    public int getFireTimerTicks() {
+        return fireTimerTicks;
+    }
+
+    public void setFireTimerTicks(int fireTimerTicks) {
+        this.fireTimerTicks = fireTimerTicks;
     }
 }
