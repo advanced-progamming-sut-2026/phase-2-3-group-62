@@ -34,6 +34,14 @@ public class GameController extends Controller {
         this.game = game;
     }
 
+    public boolean isCooldownCheatActive() {
+        return cooldownCheatActive;
+    }
+
+    public void setCooldownCheatActive(boolean active) {
+        this.cooldownCheatActive = active;
+    }
+
     public String plantPlant(String type, int x, int y) {
         return actionController.plantPlant(game, type, x, y);
     }
@@ -92,8 +100,12 @@ public class GameController extends Controller {
     }
 
     public String executeRemoveCooldownCheat() {
-        cooldownCheatActive = true;
-        return "Cheat activated: Cooldown limits removed for all plants.";
+        cooldownCheatActive = !cooldownCheatActive;
+        if (cooldownCheatActive) {
+            return "Cheat activated: Cooldown limits removed for all plants.";
+        } else {
+            return "Cheat deactivated: Cooldown limits restored.";
+        }
     }
 
     public String executeAddPlantFoodCheat() {

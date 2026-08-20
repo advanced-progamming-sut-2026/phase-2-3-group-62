@@ -24,25 +24,27 @@ import java.lang.reflect.Method;
 public class LawnRenderer {
     private final TextureRegion bgRegion;
     private final TextureRegion slidewayIceRegion;
-    private final TextureRegion beachWaterSquareRegion;
     private final TextureRegion necromancyTileRegion;
     private final TextureRegion plantFoodDropRegion;
     private final TextureRegion gemDropRegion;
     private final TextureRegion coinDropRegion;
     private final TextureRegion potDropRegion;
+    private final TextureRegion craterRegion;
     private final ShapeRenderer shapeRenderer;
     private final PamPlayer pamPlayer;
+
+    private static final String WATER_SQUARE_PAM = "768/FULL/BACKGROUNDS/WATER_SQUARE/WATER_SQUARE.PAM";
 
     public LawnRenderer(TextureBank textureBank, TextureRegion bgRegion, ShapeRenderer shapeRenderer, PamPlayer pamPlayer) {
         this.bgRegion = bgRegion;
         this.shapeRenderer = shapeRenderer;
         this.slidewayIceRegion = textureBank.region("IMAGE_ZEN_GARDEN_ZEN_POT_WATER_ZEN_POT_WATER_160X97");
-        this.beachWaterSquareRegion = textureBank.region("IMAGE_UI_CARDS_BACKGROUNDS_CARD_PLANT_BG_BEACH_WATER");
         this.necromancyTileRegion = textureBank.region("IMAGE_UI_UNIVERSE_UNIVERSE_PORTAL_UNIVERSE_PORTAL_763X763");
         this.plantFoodDropRegion = textureBank.region("IMAGE_UI_HUD_INGAME_PLANTFOOD_BUTTON");
         this.gemDropRegion = textureBank.region("IMAGE_UI_QUESTS_GEM_ICON");
         this.coinDropRegion = textureBank.region("IMAGE_UI_DANGERROOM_COIN_MIDSIZE");
         this.potDropRegion = textureBank.region("IMAGE_FIREBREAKER_VASE_GREEN_FIREWORKS_VASE_GREEN_FIREWORKS_115X150");
+        this.craterRegion = textureBank.region("IMAGE_ENDLEVEL_SPROUT_SPROUT_179X50");
         this.pamPlayer = pamPlayer;
     }
 
@@ -140,18 +142,35 @@ public class LawnRenderer {
 
                 float tx = startX + (c * GameGrid.TILE_WIDTH);
                 float ty = startY + ((4 - r) * GameGrid.TILE_HEIGHT);
+                Vector2 center = GameGrid.getTileCenterPosition(r, c);
+
+                if (t.isCrater() && craterRegion != null) {
+                    float cw = GameGrid.TILE_WIDTH * 0.9f;
+                    float ch = 40f;
+                    batch.draw(craterRegion, center.x - cw / 2f, center.y - ch / 2f, cw, ch);
+                }
 
                 if (t.isNecromancyTile() && necromancyTileRegion != null) {
                     batch.draw(necromancyTileRegion, tx, ty, GameGrid.TILE_WIDTH, GameGrid.TILE_HEIGHT);
                 }
 
-                if (t.getType() == TileType.WATER && beachWaterSquareRegion != null) {
-                    batch.draw(beachWaterSquareRegion, tx, ty, GameGrid.TILE_WIDTH, GameGrid.TILE_HEIGHT);
-                }
-
                 if (t.isSlideway() && slidewayIceRegion != null) {
                     float renderVisualX = tx + GameGrid.TILE_WIDTH;
                     batch.draw(slidewayIceRegion, renderVisualX, ty, GameGrid.TILE_WIDTH, GameGrid.TILE_HEIGHT);
+                }
+
+                if (t.getType() == TileType.WATER) {
+                    try {
+                        pamPlayer.draw(batch, WATER_SQUARE_PAM, "anim_idle", stateTime, center.x, center.y, true);
+                    } catch (Exception e1) {
+                        try {
+                            pamPlayer.draw(batch, WATER_SQUARE_PAM, "idle", stateTime, center.x, center.y, true);
+                        } catch (Exception e2) {
+                            try {
+                                pamPlayer.draw(batch, WATER_SQUARE_PAM, null, stateTime, center.x, center.y, true);
+                            } catch (Exception ignored) {}
+                        }
+                    }
                 }
             }
         }
@@ -292,36 +311,10 @@ public class LawnRenderer {
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.setProjectionMatrix(projectionMatrix);
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0.1f, 0.5f, 0.9f, 0.22f);
-        for (int r = 0; r < GameGrid.ROWS; r++) {
-            for (int c = 0; c < GameGrid.COLS; c++) {
-                Tile t = game.getBoard().getTile(r, c);
-                if (t != null && t.isLowBeach()) {
-                    float tx = startX + (c * GameGrid.TILE_WIDTH);
-                    float ty = startY + ((4 - r) * GameGrid.TILE_HEIGHT);
-                    shapeRenderer.rect(tx, ty, GameGrid.TILE_WIDTH, GameGrid.TILE_HEIGHT);
-                }
-            }
-        }
-        shapeRenderer.end();
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(0.2f, 0.8f, 1f, 0.75f);
-        Gdx.gl.glLineWidth(3);
-        for (int r = 0; r < GameGrid.ROWS; r++) {
-            for (int c = 0; c < GameGrid.COLS; c++) {
-                Tile t = game.getBoard().getTile(r, c);
-                if (t != null && t.isLowBeach()) {
-                    float tx = startX + (c * GameGrid.TILE_WIDTH);
-                    float ty = startY + ((4 - r) * GameGrid.TILE_HEIGHT);
-                    shapeRenderer.rect(tx + 2, ty + 2, GameGrid.TILE_WIDTH - 4, GameGrid.TILE_HEIGHT - 4);
-                }
-            }
-        }
-
         int maxWaterCol = 4;
         float tideLineX = startX + maxWaterCol * GameGrid.TILE_WIDTH;
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(0.0f, 0.9f, 1.0f, 0.9f);
         Gdx.gl.glLineWidth(4);
         shapeRenderer.line(tideLineX, startY, tideLineX, startY + GameGrid.GRID_TOTAL_HEIGHT);

@@ -124,18 +124,18 @@ public class GamePlayInputHandler extends InputListener {
                     }
                 }
                 Tile t = modelGame.getBoard().getTile(hoveredRow, hoveredCol);
-                if (t != null && t.getPlant() != null) {
-                    Plant p = t.getPlant();
-                    modelGame.removePlant(p);
-                    t.setPlant(null);
-                    screen.enqueueLog("Removed " + p.getName() + "!", false);
+                if (t != null && (t.getPlant() != null || t.getPumpkinPlant() != null)) {
+                    String res = gameController.pluckPlant(hoveredCol, hoveredRow);
+                    if (res != null) {
+                        screen.enqueueLog(res, res.startsWith("Error"));
+                    }
                     screen.setToolMode(GamePlayScreen.ToolMode.NONE);
                     return true;
                 }
             } else if (screen.getCurrentToolMode() == GamePlayScreen.ToolMode.PLANT_FOOD) {
                 Tile t = modelGame.getBoard().getTile(hoveredRow, hoveredCol);
-                if (t != null && t.getPlant() != null) {
-                    Plant p = t.getPlant();
+                if (t != null && (t.getPlant() != null || t.getPumpkinPlant() != null)) {
+                    Plant p = t.getPlant() != null ? t.getPlant() : t.getPumpkinPlant();
                     if (modelGame.getPlantFoodCount() > 0) {
                         modelGame.usePlantFood();
                         PlantAbilityHandler abilityHandler = new PlantAbilityHandler();
@@ -163,7 +163,9 @@ public class GamePlayInputHandler extends InputListener {
             if (res != null) {
                 screen.enqueueLog(res, false);
             }
-            screen.getHud().putCooldown(plant.getName(), (float) plant.getRecharge());
+            if (!gameController.isCooldownCheatActive()) {
+                screen.getHud().putCooldown(plant.getName(), (float) plant.getRecharge());
+            }
             screen.setToolMode(GamePlayScreen.ToolMode.NONE);
         }
     }

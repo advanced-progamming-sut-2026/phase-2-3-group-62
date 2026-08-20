@@ -13,12 +13,14 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.ScreenUtils;
 import controller.menu.MenuController;
 import main.Maini;
+import model.entities.PlantType;
 import model.entities.ZombieType;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
@@ -47,10 +49,10 @@ public class CollectionScreen implements Screen {
 
     private PamPlayer pamPlayer;
     private TextureRegion bgRegion;
-    private TextureRegion scrollBottomRegion;
     private TextureRegion plantCardFaceRegion;
     private TextureRegion zombieCardBackRegion;
     private TextureRegion progressBarBgRegion;
+    private TextureRegion goldCoinRegion;
 
     private boolean isPlantsTab = true;
     private String currentFilter = "ALL";
@@ -73,10 +75,10 @@ public class CollectionScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
 
         bgRegion = game.getTextureBank().region("IMAGE_UI_CARDS_STORE_STORE_CARD_GREEN");
-        scrollBottomRegion = game.getTextureBank().region("IMAGE_UI_JOUST_LEADERBOARD_LEADERBOARD_SCROLL_BOTTOM");
         plantCardFaceRegion = game.getTextureBank().region("IMAGE_DANGERROOM_CARD_FACE");
         zombieCardBackRegion = game.getTextureBank().region("IMAGE_DANGERROOM_CARD_BACK");
         progressBarBgRegion = game.getTextureBank().region("IMAGE_UI_GENERIC_GUARANTEED_BG");
+        goldCoinRegion = game.getTextureBank().region("IMAGE_EFFECTS_COIN_GOLD_COIN_GOLD_98X95");
 
         try {
             pamPlayer = new PamPlayer(game.getTextureBank(), Gdx.files.internal("assets"));
@@ -120,7 +122,7 @@ public class CollectionScreen implements Screen {
         Table topRow = new Table();
 
         TextButton backBtn = new TextButton("Back", skin);
-        backBtn.getLabel().setFontScale(1.1f);
+        backBtn.getLabel().setFontScale(1.15f);
         attachHoverEffect(backBtn, 1.06f);
         backBtn.addListener(new ClickListener() {
             @Override
@@ -130,12 +132,12 @@ public class CollectionScreen implements Screen {
                 dispose();
             }
         });
-        topRow.add(backBtn).size(110, 46).left();
+        topRow.add(backBtn).size(120, 50).left();
 
         walletBar = new WalletBar(game, skin);
         topRow.add(walletBar).expandX().right();
 
-        root.add(topRow).fillX().pad(8, 20, 0, 20).row();
+        root.add(topRow).fillX().pad(6, 16, 0, 16).row();
 
         Table mainContainer = new Table();
 
@@ -148,13 +150,13 @@ public class CollectionScreen implements Screen {
             isPlantsTab = true;
             refreshView();
         });
-        tabsTable.add(plantTabBtn).size(125, 52).padRight(10);
+        tabsTable.add(plantTabBtn).size(135, 56).padRight(12);
 
         Button zombieTabBtn = createTabButton("IMAGE_UI_ALMANAC_TABS_UPGRADES_ACTIVE", "IMAGE_UI_STORE_TABICONS_ZOMBIES", () -> {
             isPlantsTab = false;
             refreshView();
         });
-        tabsTable.add(zombieTabBtn).size(125, 52);
+        tabsTable.add(zombieTabBtn).size(135, 56);
 
         leftTopHeader.add(tabsTable).left();
 
@@ -176,43 +178,44 @@ public class CollectionScreen implements Screen {
         }
 
         filterLabel = new Label("Filter: " + currentFilter, skin, "big");
-        filterLabel.setFontScale(0.75f);
+        filterLabel.setFontScale(0.85f);
         filterLabel.setColor(Color.WHITE);
 
-        if (filterBtn != null) filterContainer.add(filterBtn).size(38, 38).padRight(8);
+        if (filterBtn != null) filterContainer.add(filterBtn).size(42, 42).padRight(8);
         filterContainer.add(filterLabel).left();
 
-        leftTopHeader.add(filterContainer).expandX().right().padRight(12);
+        leftTopHeader.add(filterContainer).expandX().right().padRight(14);
 
         leftSection.add(leftTopHeader).fillX().padBottom(6).row();
 
         Table leftBox = new Table();
-        if (scrollBottomRegion != null) {
-            TextureRegionDrawable leftBg = new TextureRegionDrawable(scrollBottomRegion);
-            leftBg.setPadding(-22, -26, -22, -26);
-            leftBox.setBackground(leftBg);
+        if (skin.has("image_ui_quests_panel_edge_to_edge_ten", Drawable.class)) {
+            leftBox.setBackground(skin.getDrawable("image_ui_quests_panel_edge_to_edge_ten"));
         }
 
         contentGrid = new Table();
         contentGrid.top().left();
+        contentGrid.pad(10, 14, 14, 110);
+
         scrollPane = new ScrollPane(contentGrid, skin);
         scrollPane.setFadeScrollBars(false);
         scrollPane.setScrollingDisabled(true, false);
 
-        leftBox.add(scrollPane).width(800).height(515).pad(15);
-        leftSection.add(leftBox).size(830, 545);
+        leftBox.add(scrollPane).width(895).height(555).pad(14);
+        leftSection.add(leftBox).size(940, 595);
 
-        mainContainer.add(leftSection).padRight(32);
+        mainContainer.add(leftSection).padRight(24);
 
         detailPane = new Table();
-        if (scrollBottomRegion != null) {
-            TextureRegionDrawable detailBg = new TextureRegionDrawable(scrollBottomRegion);
-            detailBg.setPadding(-24, -28, -24, -28);
-            detailPane.setBackground(detailBg);
+        detailPane.top();
+        if (skin.has("image_ui_if_bundle_reward1_bg_10", Drawable.class)) {
+            detailPane.setBackground(skin.getDrawable("image_ui_if_bundle_reward1_bg_10"));
+        } else if (skin.has("image_ui_quests_panel_edge_to_edge_ten", Drawable.class)) {
+            detailPane.setBackground(skin.getDrawable("image_ui_quests_panel_edge_to_edge_ten"));
         }
-        mainContainer.add(detailPane).size(480, 603);
+        mainContainer.add(detailPane).size(530, 657);
 
-        root.add(mainContainer).expand().center().padBottom(10);
+        root.add(mainContainer).expand().center().padBottom(6);
 
         refreshView();
     }
@@ -228,7 +231,7 @@ public class CollectionScreen implements Screen {
         if (tabIcon != null) {
             Image iconImg = new Image(tabIcon);
             iconImg.setScaling(Scaling.fit);
-            btn.add(iconImg).size(40, 40).center();
+            btn.add(iconImg).size(44, 44).center();
         }
 
         attachHoverEffect(btn, 1.08f);
@@ -302,7 +305,7 @@ public class CollectionScreen implements Screen {
             }
 
             Table card = createPlantCardWidget(plant, isUnlocked, currentLevel, packets, requiredPackets);
-            contentGrid.add(card).size(144, 168).pad(6);
+            contentGrid.add(card).size(164, 196).pad(6);
             colCount++;
             if (colCount % 5 == 0) {
                 contentGrid.row();
@@ -330,47 +333,70 @@ public class CollectionScreen implements Screen {
         }
 
         Stack stack = new Stack();
-        stack.setSize(136, 158);
+        stack.setSize(156, 186);
 
         Table contentTable = new Table();
         contentTable.setFillParent(true);
+        contentTable.top();
 
-        PamActor plantAnim = new PamActor(pamPlayer, plant.getPamPath(), null, 0.392f) {
-            @Override
-            public void act(float delta) {
-                super.act(0f);
+        PlantType pType = PlantType.fromName(plant.getName());
+        Actor visualActor = null;
+
+        if (pType != null && pType.getIconRegionName() != null) {
+            TextureRegion iconRegion = game.getTextureBank().region(pType.getIconRegionName());
+            if (iconRegion != null) {
+                Image iconImage = new Image(iconRegion);
+                iconImage.setScaling(Scaling.fit);
+                iconImage.setAlign(Align.center);
+                visualActor = iconImage;
             }
-        };
-        plantAnim.setSize(140, 140);
-        plantAnim.setTouchable(Touchable.disabled);
+        }
+
+        if (visualActor == null) {
+            PamActor plantAnim = new PamActor(pamPlayer, plant.getPamPath(), "idle", 0.22f) {
+                @Override
+                public void act(float delta) {
+                    super.act(0f);
+                }
+            };
+            plantAnim.act(1.4f);
+            visualActor = plantAnim;
+        }
+
+        visualActor.setTouchable(Touchable.disabled);
 
         if (!isUnlocked) {
-            plantAnim.setColor(0.38f, 0.38f, 0.38f, 0.7f);
+            visualActor.setColor(0.38f, 0.38f, 0.38f, 0.7f);
         }
-        contentTable.add(plantAnim).size(140, 140).padTop(2).center().row();
+
+        Container<Actor> iconContainer = new Container<>(visualActor);
+        iconContainer.size(80, 80);
+        iconContainer.fill();
+
+        contentTable.add(iconContainer).size(80, 80).padTop(20).center().row();
 
         if (isUnlocked) {
             Label lvlBadge = new Label("Lvl " + level, skin, "big");
-            lvlBadge.setFontScale(0.55f);
+            lvlBadge.setFontScale(0.62f);
             lvlBadge.setColor(Color.WHITE);
             lvlBadge.setTouchable(Touchable.disabled);
-            contentTable.add(lvlBadge).padTop(1).center().row();
+            contentTable.add(lvlBadge).padTop(4).center().row();
 
             Table progTable = new Table();
             if (progressBarBgRegion != null) {
                 progTable.setBackground(new TextureRegionDrawable(progressBarBgRegion));
             }
             Label progLabel = new Label(packets + "/" + requiredPackets, skin, "big");
-            progLabel.setFontScale(0.48f);
+            progLabel.setFontScale(0.55f);
             progLabel.setColor(packets >= requiredPackets ? Color.GREEN : Color.YELLOW);
             progTable.add(progLabel).center();
-            contentTable.add(progTable).width(112).height(22).padTop(2).center();
+            contentTable.add(progTable).width(132).height(26).padTop(3).center();
         } else {
             Label lockedLabel = new Label("LOCKED", skin, "big");
-            lockedLabel.setFontScale(0.6f);
+            lockedLabel.setFontScale(0.70f);
             lockedLabel.setColor(Color.LIGHT_GRAY);
             lockedLabel.setTouchable(Touchable.disabled);
-            contentTable.add(lockedLabel).padTop(8).center();
+            contentTable.add(lockedLabel).padTop(16).center();
         }
 
         stack.add(contentTable);
@@ -382,7 +408,7 @@ public class CollectionScreen implements Screen {
                 pamPlayer,
                 "768/FULL/UI/LOCK_ANIMS/LOCK_ANIMS.PAM",
                 null,
-                0.65f,
+                0.80f,
                 200f,
                 0f
             ) {
@@ -391,13 +417,13 @@ public class CollectionScreen implements Screen {
                     super.act(0f);
                 }
             };
-            lockAnim.setSize(72, 72);
+            lockAnim.setSize(88, 88);
             lockAnim.setTouchable(Touchable.disabled);
-            lockOverlay.add(lockAnim).size(72, 72).center();
+            lockOverlay.add(lockAnim).size(88, 88).center();
             stack.add(lockOverlay);
         }
 
-        card.add(stack).size(136, 158);
+        card.add(stack).size(156, 186);
         card.setOrigin(Align.center);
 
         card.addListener(new InputListener() {
@@ -432,11 +458,11 @@ public class CollectionScreen implements Screen {
     private void addStatRow(Table table, String title, String value) {
         Table row = new Table();
         Label tLbl = new Label(title, skin, "big");
-        tLbl.setFontScale(0.68f);
+        tLbl.setFontScale(0.74f);
         tLbl.setColor(new Color(0.85f, 0.9f, 1f, 1f));
 
         Label vLbl = new Label(value, skin, "big");
-        vLbl.setFontScale(0.68f);
+        vLbl.setFontScale(0.74f);
         vLbl.setColor(Color.WHITE);
 
         row.add(tLbl).left();
@@ -460,13 +486,13 @@ public class CollectionScreen implements Screen {
         int currentLevel = user != null ? user.getPlantLevels().getOrDefault(plant.getName(), 1) : 1;
 
         Label nameTitle = new Label(plant.getName(), skin, "big");
-        nameTitle.setFontScale(1.3f);
+        nameTitle.setFontScale(1.35f);
         nameTitle.setColor(Color.YELLOW);
-        detailPane.add(nameTitle).padTop(16).center().row();
+        detailPane.add(nameTitle).padTop(24).center().row();
 
-        PamActor bigAnim = new PamActor(pamPlayer, plant.getPamPath(), "anim_idle", 0.63f);
-        bigAnim.setSize(220, 220);
-        detailPane.add(bigAnim).size(220, 220).padTop(6).center().row();
+        PamActor bigAnim = new PamActor(pamPlayer, plant.getPamPath(), "idle", 1.0f);
+        bigAnim.setSize(260, 260);
+        detailPane.add(bigAnim).size(260, 260).padTop(8).center().row();
 
         Table stats = new Table();
         stats.left();
@@ -479,12 +505,33 @@ public class CollectionScreen implements Screen {
         addStatRow(stats, "Action Interval:", plant.getActionInterval() + "s");
         addStatRow(stats, "Current Level:", String.valueOf(currentLevel));
 
-        detailPane.add(stats).pad(10, 24, 6, 24).fillX().row();
+        detailPane.add(stats).pad(12, 30, 10, 30).fillX().row();
+
+        TextButton.TextButtonStyle greenStyle = skin.has("green", TextButton.TextButtonStyle.class) ? skin.get("green", TextButton.TextButtonStyle.class) : skin.get(TextButton.TextButtonStyle.class);
 
         if (isUnlocked) {
             int upgradeCost = currentLevel * 1000;
-            TextButton upgradeBtn = new TextButton("Upgrade (" + upgradeCost + " Coins)", skin);
-            upgradeBtn.getLabel().setFontScale(0.95f);
+            Button upgradeBtn = new Button(greenStyle);
+            upgradeBtn.setTransform(true);
+            upgradeBtn.setOrigin(Align.center);
+
+            Label upText = new Label("Upgrade (" + upgradeCost, skin, "big");
+            upText.setFontScale(0.85f);
+            upText.setTouchable(Touchable.disabled);
+            upgradeBtn.add(upText).padRight(6);
+
+            if (goldCoinRegion != null) {
+                Image cImg = new Image(goldCoinRegion);
+                cImg.setScaling(Scaling.fit);
+                cImg.setTouchable(Touchable.disabled);
+                upgradeBtn.add(cImg).size(28, 28).padRight(4);
+            }
+
+            Label closeParen = new Label(")", skin, "big");
+            closeParen.setFontScale(0.85f);
+            closeParen.setTouchable(Touchable.disabled);
+            upgradeBtn.add(closeParen);
+
             attachHoverEffect(upgradeBtn, 1.05f);
             upgradeBtn.addListener(new ClickListener() {
                 @Override
@@ -501,10 +548,29 @@ public class CollectionScreen implements Screen {
                     showPlantDetail(plant);
                 }
             });
-            detailPane.add(upgradeBtn).size(260, 48).padBottom(15).center();
+            detailPane.add(upgradeBtn).size(340, 60).padBottom(20).center();
         } else {
-            TextButton purchaseBtn = new TextButton("Unlock (2000 Coins)", skin);
-            purchaseBtn.getLabel().setFontScale(0.95f);
+            Button purchaseBtn = new Button(greenStyle);
+            purchaseBtn.setTransform(true);
+            purchaseBtn.setOrigin(Align.center);
+
+            Label pText = new Label("Unlock (2000", skin, "big");
+            pText.setFontScale(0.85f);
+            pText.setTouchable(Touchable.disabled);
+            purchaseBtn.add(pText).padRight(6);
+
+            if (goldCoinRegion != null) {
+                Image cImg = new Image(goldCoinRegion);
+                cImg.setScaling(Scaling.fit);
+                cImg.setTouchable(Touchable.disabled);
+                purchaseBtn.add(cImg).size(28, 28).padRight(4);
+            }
+
+            Label closeParen = new Label(")", skin, "big");
+            closeParen.setFontScale(0.85f);
+            closeParen.setTouchable(Touchable.disabled);
+            purchaseBtn.add(closeParen);
+
             attachHoverEffect(purchaseBtn, 1.05f);
             purchaseBtn.addListener(new ClickListener() {
                 @Override
@@ -521,7 +587,7 @@ public class CollectionScreen implements Screen {
                     showPlantDetail(plant);
                 }
             });
-            detailPane.add(purchaseBtn).size(260, 48).padBottom(15).center();
+            detailPane.add(purchaseBtn).size(340, 60).padBottom(20).center();
         }
     }
 
@@ -547,7 +613,7 @@ public class CollectionScreen implements Screen {
             }
 
             Table card = createZombieCardWidget(zombie, isObserved);
-            contentGrid.add(card).size(144, 168).pad(6);
+            contentGrid.add(card).size(164, 196).pad(6);
             colCount++;
             if (colCount % 5 == 0) {
                 contentGrid.row();
@@ -559,7 +625,7 @@ public class CollectionScreen implements Screen {
         } else {
             detailPane.clear();
             Label emptyLbl = new Label("No zombies discovered yet.", skin, "big");
-            emptyLbl.setFontScale(0.9f);
+            emptyLbl.setFontScale(1.0f);
             emptyLbl.setColor(Color.LIGHT_GRAY);
             detailPane.add(emptyLbl).expand().center();
         }
@@ -580,21 +646,27 @@ public class CollectionScreen implements Screen {
             card.setColor(Color.WHITE);
         }
 
+        Stack stack = new Stack();
+        stack.setSize(156, 186);
+
         Table content = new Table();
+        content.setFillParent(true);
+        content.top();
 
         if (isObserved) {
             ZombieType zType = ZombieType.fromZombie(zombie);
             String pamPath = zType != null ? zType.getPamPath() : "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM";
-            float scale = zType != null ? zType.getScale() : 0.28f;
+            float baseScale = zType != null ? zType.getScale() : 0.28f;
+            float scale = baseScale * 1.35f;
             float offX = zType != null ? zType.getOffsetX() : 0f;
-            float offY = zType != null ? zType.getOffsetY() : 0f;
+            float offY = (zType != null ? zType.getOffsetY() : 0f) - 18f;
 
             Map<String, Boolean> visibility = getArmorVisibilityForType(zType);
 
             PamActor zAnim = new PamActor(
                 pamPlayer,
                 pamPath,
-                null,
+                "idle",
                 scale,
                 offX,
                 offY,
@@ -605,26 +677,32 @@ public class CollectionScreen implements Screen {
                     super.act(0f);
                 }
             };
-            zAnim.setSize(108, 108);
+            zAnim.act(1.4f);
             zAnim.setTouchable(Touchable.disabled);
-            content.add(zAnim).size(108, 108).center().row();
+
+            Container<PamActor> animContainer = new Container<>(zAnim);
+            animContainer.size(105, 105);
+            animContainer.fill();
+
+            content.add(animContainer).size(105, 105).padTop(28).center().row();
 
             Label nameLbl = new Label(zType != null ? zType.getDisplayName() : zombie.getName(), skin, "big");
-            nameLbl.setFontScale(0.55f);
-            nameLbl.setEllipsis(true);
+            nameLbl.setFontScale(0.48f);
+            nameLbl.setWrap(true);
             nameLbl.setAlignment(Align.center);
             nameLbl.setColor(Color.WHITE);
             nameLbl.setTouchable(Touchable.disabled);
-            content.add(nameLbl).width(128).padTop(4).center();
+            content.add(nameLbl).width(142).padTop(6).center();
         } else {
             Label unk = new Label("???", skin, "big");
-            unk.setFontScale(1.5f);
+            unk.setFontScale(1.75f);
             unk.setColor(Color.DARK_GRAY);
             unk.setTouchable(Touchable.disabled);
             content.add(unk).expand().center();
         }
 
-        card.add(content).expand().center();
+        stack.add(content);
+        card.add(stack).size(156, 186);
         card.setOrigin(Align.center);
 
         if (isObserved) {
@@ -725,28 +803,27 @@ public class CollectionScreen implements Screen {
         ZombieType zType = ZombieType.fromZombie(zombie);
         String displayName = zType != null ? zType.getDisplayName() : zombie.getName();
         String pamPath = zType != null ? zType.getPamPath() : "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM";
-        float scale = zType != null ? zType.getScale() * 1.6f : 0.45f;
         float offX = zType != null ? zType.getOffsetX() : 0f;
         float offY = zType != null ? zType.getOffsetY() : 0f;
 
         Label nameTitle = new Label(displayName, skin, "big");
-        nameTitle.setFontScale(1.3f);
+        nameTitle.setFontScale(1.35f);
         nameTitle.setColor(Color.RED);
-        detailPane.add(nameTitle).padTop(16).center().row();
+        detailPane.add(nameTitle).padTop(24).center().row();
 
         Map<String, Boolean> visibility = getArmorVisibilityForType(zType);
 
         PamActor bigAnim = new PamActor(
             pamPlayer,
             pamPath,
-            "anim_idle",
-            scale,
+            "idle",
+            1.0f,
             offX,
             offY,
             visibility
         );
-        bigAnim.setSize(190, 190);
-        detailPane.add(bigAnim).size(190, 190).padTop(6).center().row();
+        bigAnim.setSize(260, 260);
+        detailPane.add(bigAnim).size(260, 260).padTop(8).center().row();
 
         Table stats = new Table();
         stats.left();
@@ -761,7 +838,7 @@ public class CollectionScreen implements Screen {
             addStatRow(stats, "Armor HP:", String.valueOf(aHp));
         }
 
-        detailPane.add(stats).pad(10, 24, 15, 24).fillX().expandY().top();
+        detailPane.add(stats).pad(12, 30, 20, 30).fillX().expandY().top();
     }
 
     @Override

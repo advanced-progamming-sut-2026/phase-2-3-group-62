@@ -243,7 +243,7 @@ public class ZombossAbilityHandler {
 
             for (Plant p : game.getActivePlants()) {
                 if (p.getY() == r1 || p.getY() == r2) {
-                    p.setFreezeLevel(p.getFreezeLevel() + 1);
+                    p.setFreezeLevel(3);
                 }
             }
 
@@ -271,7 +271,8 @@ public class ZombossAbilityHandler {
                 if (frozenZombie != null) {
                     frozenZombie.setX(spawnCol);
                     frozenZombie.setY(spawnRow);
-                    frozenZombie.applyFrozen(45.0);
+                    frozenZombie.setFrozenIceHealth(0);
+                    frozenZombie.applyFrozen(5.0);
                     game.getActiveZombies().add(frozenZombie);
                 }
             }
@@ -292,7 +293,8 @@ public class ZombossAbilityHandler {
                 if (frozenZombie != null) {
                     frozenZombie.setX(targetCol);
                     frozenZombie.setY(r);
-                    frozenZombie.applyFrozen(45.0);
+                    frozenZombie.setFrozenIceHealth(0);
+                    frozenZombie.applyFrozen(5.0);
                     game.getActiveZombies().add(frozenZombie);
                 }
             }
@@ -332,17 +334,6 @@ public class ZombossAbilityHandler {
         int r2 = zomboss.getSecondaryRow();
         double bossX = zomboss.getX();
 
-        for (Zombie z : new ArrayList<>(game.getActiveZombies())) {
-            if (z == zomboss) continue;
-            if (z.getY() == r1 || z.getY() == r2) {
-                z.setX(z.getX() + 0.15);
-                if (z.getX() >= bossX - 0.5) {
-                    z.setHealth(0);
-                    game.getGameLogMessages().add("Sharktronic Sub swallowed zombie " + z.getName() + "!");
-                }
-            }
-        }
-
         if (game.getTickCount() % 4 == 0) {
             for (Plant p : new ArrayList<>(game.getActivePlants())) {
                 if (p.getY() == r1 || p.getY() == r2) {
@@ -350,14 +341,31 @@ public class ZombossAbilityHandler {
                     int nextX = p.getX() + 1;
                     if (nextX >= (int) Math.floor(bossX)) {
                         game.removePlant(p);
-                        if (curTile != null) curTile.setPlant(null);
+                        if (curTile != null) {
+                            if (curTile.getPlant() == p) {
+                                curTile.setPlant(null);
+                            }
+                            if (curTile.getPumpkinPlant() == p) {
+                                curTile.setPumpkinPlant(null);
+                            }
+                        }
+                        game.incrementPlantsLost();
                         game.getGameLogMessages().add("Sharktronic Sub devoured plant " + p.getName() + "!");
                     } else {
                         Tile nextTile = game.getBoard().getTile(p.getY(), nextX);
-                        if (nextTile != null && nextTile.getPlant() == null) {
-                            if (curTile != null) curTile.setPlant(null);
-                            p.setX(nextX);
-                            nextTile.setPlant(p);
+                        boolean isPumpkin = p.getName().replace(" ", "").replace("-", "").equalsIgnoreCase("Pumpkin");
+                        if (isPumpkin) {
+                            if (nextTile != null && nextTile.getPumpkinPlant() == null) {
+                                if (curTile != null && curTile.getPumpkinPlant() == p) curTile.setPumpkinPlant(null);
+                                p.setX(nextX);
+                                nextTile.setPumpkinPlant(p);
+                            }
+                        } else {
+                            if (nextTile != null && nextTile.getPlant() == null) {
+                                if (curTile != null && curTile.getPlant() == p) curTile.setPlant(null);
+                                p.setX(nextX);
+                                nextTile.setPlant(p);
+                            }
                         }
                     }
                 }
@@ -378,13 +386,25 @@ public class ZombossAbilityHandler {
             for (int c = Math.max(0, curCol); c < game.getBoard().getColumns(); c++) {
                 Tile t1 = game.getBoard().getTile(r1, c);
                 Tile t2 = game.getBoard().getTile(r2, c);
-                if (t1 != null && t1.getPlant() != null) {
-                    game.removePlant(t1.getPlant());
-                    t1.setPlant(null);
+                if (t1 != null) {
+                    if (t1.getPlant() != null) {
+                        game.removePlant(t1.getPlant());
+                        t1.setPlant(null);
+                    }
+                    if (t1.getPumpkinPlant() != null) {
+                        game.removePlant(t1.getPumpkinPlant());
+                        t1.setPumpkinPlant(null);
+                    }
                 }
-                if (t2 != null && t2.getPlant() != null) {
-                    game.removePlant(t2.getPlant());
-                    t2.setPlant(null);
+                if (t2 != null) {
+                    if (t2.getPlant() != null) {
+                        game.removePlant(t2.getPlant());
+                        t2.setPlant(null);
+                    }
+                    if (t2.getPumpkinPlant() != null) {
+                        game.removePlant(t2.getPumpkinPlant());
+                        t2.setPumpkinPlant(null);
+                    }
                 }
             }
 

@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.Scaling;
 import controller.game.GameController;
 import main.Maini;
 import model.Game;
+import model.entities.PlantType;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
 import model.entities.zombie.Spawner;
@@ -50,6 +51,7 @@ public class GamePlayHud {
     private final Skin skin;
     private final PamPlayer pamPlayer;
     private final GameController gameController;
+    private final Maini game;
 
     private TextureRegion badgeRegion;
     private TextureRegion sunIconRegion;
@@ -108,6 +110,7 @@ public class GamePlayHud {
         this.stage = stage;
         this.skin = skin;
         this.pamPlayer = pamPlayer;
+        this.game = game;
         this.gameController = gameController;
 
         initTextures(game);
@@ -528,7 +531,7 @@ public class GamePlayHud {
                 int currentLevel = user != null ? user.getPlantLevels().getOrDefault(plant.getName(), 1) : 1;
                 boolean boosted = user != null && user.getGreenhouseBoosts() != null && user.getGreenhouseBoosts().getOrDefault(plant.getName(), false);
 
-                PlantSeedCard card = new PlantSeedCard(plant, currentLevel, boosted, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
+                PlantSeedCard card = new PlantSeedCard(game, plant, currentLevel, boosted, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
                 seedCardWidgets.add(card);
                 attachHoverEffect(card, 1.06f);
 
@@ -581,6 +584,10 @@ public class GamePlayHud {
     }
 
     public void updateCooldowns(float delta, float speedMultiplier) {
+        if (gameController != null && gameController.isCooldownCheatActive()) {
+            cooldownTimers.clear();
+        }
+
         for (String plantName : new ArrayList<>(cooldownTimers.keySet())) {
             float cd = cooldownTimers.get(plantName) - (delta * speedMultiplier);
             if (cd <= 0f) {
@@ -808,6 +815,9 @@ public class GamePlayHud {
     }
 
     public void putCooldown(String plantName, float duration) {
+        if (gameController != null && gameController.isCooldownCheatActive()) {
+            return;
+        }
         cooldownTimers.put(plantName, duration);
     }
 

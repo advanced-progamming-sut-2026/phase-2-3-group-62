@@ -31,15 +31,41 @@ public class Plant {
     private float animStateTimer = 0f;
 
     public void triggerAttack(float duration) {
-        if (!"plantfood".equals(this.animState)) {
-            this.animState = "attack";
+        if (!"plantfood".equals(this.animState) && !"plantfood_on".equals(this.animState)) {
+            if (this.name != null && this.name.equalsIgnoreCase("Endurian")) {
+                this.animState = "attack_loop";
+            } else if (this.name != null && this.name.equalsIgnoreCase("Squash")) {
+                this.animState = "jump_down_right";
+            } else if (this.name != null && this.name.equalsIgnoreCase("Tangle Kelp")) {
+                this.animState = "attack";
+            } else {
+                this.animState = "attack";
+            }
+            this.animStateTimer = duration;
+        }
+    }
+
+    public void triggerCustomAnim(String animName, float duration) {
+        if (!"plantfood".equals(this.animState) && !"plantfood_on".equals(this.animState)) {
+            this.animState = animName;
             this.animStateTimer = duration;
         }
     }
 
     public void triggerPlantFood(float duration) {
-        this.animState = "plantfood";
+        if (this.name != null && this.name.equalsIgnoreCase("Endurian")) {
+            this.animState = "plantfood_on";
+        } else {
+            this.animState = "plantfood";
+        }
         this.animStateTimer = duration;
+    }
+
+    public void triggerGrowth(float duration) {
+        if (!"plantfood".equals(this.animState) && !"plantfood_on".equals(this.animState)) {
+            this.animState = "growth";
+            this.animStateTimer = duration;
+        }
     }
 
     public String getAnimState() {
@@ -50,11 +76,16 @@ public class Plant {
         if (animStateTimer > 0) {
             animStateTimer -= delta;
             if (animStateTimer <= 0) {
-                animState = "idle";
+                if (isDigesting()) {
+                    animState = "chew";
+                } else {
+                    animState = "idle";
+                }
                 animStateTimer = 0;
             }
         }
     }
+
     private int dx;
     private int dy;
     private int hitCount;
@@ -118,6 +149,8 @@ public class Plant {
                 this.armTimerTicks = 150;
             } else if (name.equalsIgnoreCase("Primal Potato Mine")) {
                 this.armTimerTicks = 50;
+            } else if (name.equalsIgnoreCase("Primal Sunflower") || name.equalsIgnoreCase("Primal_Sunflower")) {
+                this.hasSunToCollect = true;
             }
         }
     }
@@ -250,13 +283,16 @@ public class Plant {
         this.tickCounter++;
         this.stageTickCounter++;
         if (this.name != null) {
-            if (this.name.equalsIgnoreCase("Sun-shroom")) {
+            String cleanName = this.name.replace(" ", "").replace("-", "");
+            if (cleanName.equalsIgnoreCase("Sunshroom")) {
                 int stg2Ticks = (level >= 2) ? 190 : 240;
                 int stg3Ticks = (level >= 2) ? 720 : 960;
                 if (this.plantStage == 1 && this.stageTickCounter >= stg2Ticks) {
                     this.plantStage = 2;
+                    triggerGrowth(1.2f);
                 } else if (this.plantStage == 2 && this.stageTickCounter >= stg3Ticks) {
                     this.plantStage = 3;
+                    triggerGrowth(1.2f);
                 }
             } else if (this.name.equalsIgnoreCase("Kiwibeast")) {
                 if (this.plantStage == 1 && this.stageTickCounter >= 240) {
@@ -283,6 +319,11 @@ public class Plant {
             } else if (this.name.equalsIgnoreCase("Chomper")) {
                 if (this.digestTimerTicks > 0) {
                     this.digestTimerTicks--;
+                    if (this.digestTimerTicks == 1) {
+                        triggerCustomAnim("special", 1.0f);
+                    } else if (this.digestTimerTicks <= 0) {
+                        this.animState = "idle";
+                    }
                 }
             } else if (this.name.equalsIgnoreCase("Magnet-shroom")) {
                 if (this.magnetCooldownTicks > 0) {
@@ -317,7 +358,8 @@ public class Plant {
 
     public double getSunProduce() {
         if (this.category != null && this.category.equalsIgnoreCase("SUN_PRODUCER")) {
-            if (this.name != null && this.name.equalsIgnoreCase("Sun-shroom")) {
+            String cleanName = this.name != null ? this.name.replace(" ", "").replace("-", "") : "";
+            if (cleanName.equalsIgnoreCase("Sunshroom")) {
                 double baseProd = this.plantStage == 1 ? 25.0 : (this.plantStage == 2 ? 50.0 : 75.0);
                 if (this.level >= 4 && new Random().nextBoolean()) {
                     baseProd *= 2;
@@ -432,9 +474,12 @@ public class Plant {
     public int getPlantStage() { return plantStage; }
     public void setPlantStage(int plantStage) { this.plantStage = plantStage; }
     public int getLifespanTicks() { return lifespanTicks; }
+    public void setLifespanTicks(int lifespanTicks) { this.lifespanTicks = lifespanTicks; }
     public void resetLifespan() { this.lifespanTicks = 600; }
     public boolean isArmed() { return isArmed; }
     public void setArmed(boolean armed) { this.isArmed = armed; }
+    public int getArmTimerTicks() { return armTimerTicks; }
+    public void setArmTimerTicks(int armTimerTicks) { this.armTimerTicks = armTimerTicks; }
     public int getDigestTimerTicks() { return digestTimerTicks; }
     public void startDigestion(int ticks) { this.digestTimerTicks = ticks; }
     public boolean isDigesting() { return digestTimerTicks > 0; }

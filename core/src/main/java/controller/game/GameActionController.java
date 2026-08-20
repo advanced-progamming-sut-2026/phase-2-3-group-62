@@ -81,41 +81,66 @@ public class GameActionController {
         }
 
         Tile tile = game.getBoard().getTile(y, x);
-        boolean isGraveBuster = type.replace(" ", "").replace("-", "").equalsIgnoreCase("GraveBuster");
-        if (tile != null && tile.getType() == TileType.GRAVE) {
-            if (!isGraveBuster) {
+        String cleanType = type.replace(" ", "").replace("-", "").toLowerCase();
+        boolean isGraveBuster = cleanType.equalsIgnoreCase("gravebuster");
+        boolean isPumpkin = cleanType.equalsIgnoreCase("pumpkin");
+        boolean isPeaPod = cleanType.equalsIgnoreCase("peapod");
+
+        if (isGraveBuster) {
+            if (tile == null || tile.getType() != TileType.GRAVE) {
+                return "Error: Grave Buster can only be planted on graves!";
+            }
+            if (tile.getPlant() != null) {
+                return "Error: A Grave Buster is already devouring this grave!";
+            }
+        } else {
+            if (tile != null && tile.getType() == TileType.GRAVE) {
                 return "Error: Cannot plant on this tile! It is blocked by a grave. Use Grave Buster.";
             }
-        } else if (tile != null && tile.isSlideway()) {
+        }
+
+        if (tile != null && tile.isSlideway()) {
             return "Error: Cannot plant on this tile! It is blocked by environment.";
         }
 
-        Plant check = game.getPlantAt(x, y);
+        Plant currentPlant = tile != null ? tile.getPlant() : null;
+        Plant currentPumpkin = tile != null ? tile.getPumpkinPlant() : null;
 
-        if (check != null && check.getName().equalsIgnoreCase("Pea Pod") && type.equalsIgnoreCase("Pea Pod")) {
-            if (check.getPeaPodHeads() < 5) {
-                Plant tempPlant = PlantFactory.createPlant("Pea Pod");
-                int cost = tempPlant != null ? tempPlant.getCost() : 125;
-                if (game.getSunCount() < cost) {
-                    return "Error: Not enough suns to stack Pea Pod! Required: " + cost;
-                }
-                game.spendSun(cost);
-                check.incrementPeaPodHead();
-                return "Successfully stacked head on Pea Pod at (" + x + ", " + y + "). Total heads: " + check.getPeaPodHeads();
-            } else {
+        // منطق Stack شدن Pea Pod
+        if (isPeaPod && currentPlant != null && currentPlant.getName().replace(" ", "").replace("-", "").equalsIgnoreCase("peapod")) {
+            if (currentPlant.getPeaPodHeads() >= 5) {
                 return "Error: Pea Pod already has maximum heads (5)!";
             }
+
+            int cost = 125;
+            Plant tempPlant = PlantFactory.createPlant("Pea Pod");
+            if (tempPlant != null) cost = tempPlant.getCost();
+
+            if (game.getSunCount() < cost) {
+                return "Error: Not enough suns to stack Pea Pod! Required: " + cost;
+            }
+
+            game.spendSun(cost);
+            currentPlant.incrementPeaPodHead();
+            currentPlant.triggerGrowth(0.6f);
+            return "Successfully added head to Pea Pod at (" + x + ", " + y + "). Total heads: " + currentPlant.getPeaPodHeads();
         }
 
-        if (check != null && !check.getName().equalsIgnoreCase("Lily Pad")) {
-            return "Error: There is already a plant here!";
+        if (isPumpkin) {
+            if (currentPumpkin != null) {
+                return "Error: There is already a Pumpkin protecting this tile!";
+            }
+        } else if (!isGraveBuster) {
+            if (currentPlant != null && !currentPlant.getName().equalsIgnoreCase("Lily Pad")) {
+                return "Error: There is already a plant here!";
+            }
         }
 
         if (game.getActiveMiniGame() == null && !game.getLevel().getSpecialLevelType().name().contains("CONVEYOR")) {
             boolean isSelected = false;
             if (UserSession.isLoggedIn() && UserSession.getCurrentUser() != null) {
                 for (String p : UserSession.getCurrentUser().getUnlockedPlants()) {
-                    if (p.equalsIgnoreCase(type)) {
+                    if (p.replace(" ", "").replace("-", "").equalsIgnoreCase(cleanType)) {
                         isSelected = true;
                         type = p;
                         break;
@@ -145,7 +170,7 @@ public class GameActionController {
                 }
             }
             if (newPlant == null) {
-                return "Error: Plant type not found! Try: PeaShooter, Sunflower, WallNut, etc.";
+                return "Error: Plant type not found! Try: PeaShooter, Sunflower, WallNut, Pea Pod, etc.";
             }
         }
 
@@ -160,13 +185,13 @@ public class GameActionController {
 
         if (tile != null && tile.getType() == TileType.WATER) {
             boolean isNewAquatic = newPlant.isAquatic();
-            boolean hasLilyPad = (check != null && check.getName().equalsIgnoreCase("Lily Pad")) ||
-                    (tile.getSupportPlant() != null && tile.getSupportPlant().getName().equalsIgnoreCase("Lily Pad"));
+            boolean hasLilyPad = (currentPlant != null && currentPlant.getName().equalsIgnoreCase("Lily Pad")) ||
+                (tile.getSupportPlant() != null && tile.getSupportPlant().getName().equalsIgnoreCase("Lily Pad"));
             if (!isNewAquatic && !hasLilyPad) {
                 return "Error: Cannot plant non-aquatic plant on water without a Lily Pad!";
             }
-            if (check != null && check.getName().equalsIgnoreCase("Lily Pad") && !isNewAquatic) {
-                tile.setSupportPlant(check);
+            if (currentPlant != null && currentPlant.getName().equalsIgnoreCase("Lily Pad") && !isNewAquatic) {
+                tile.setSupportPlant(currentPlant);
             }
         }
 
@@ -178,37 +203,47 @@ public class GameActionController {
         newPlant.setX(x);
         newPlant.setY(y);
         game.addPlant(newPlant);
-        tile.setPlant(newPlant);
+
+        if (isPumpkin) {
+            tile.setPumpkinPlant(newPlant);
+        } else {
+            tile.setPlant(newPlant);
+        }
+
         return "Successfully planted " + type + " at (" + x + ", " + y + ")";
     }
 
     public String pluckPlant(Game game, int x, int y) {
         if (game == null) return "Error: No active game session.";
-        Plant target = game.getPlantAt(x, y);
         Tile tile = game.getBoard().getTile(y, x);
-        if (target == null && tile != null && tile.getSupportPlant() != null) {
-            target = tile.getSupportPlant();
-        }
-        if (target == null) return "Error: There is no plant at this location to pluck.";
-        game.removePlant(target);
-        if (tile != null) {
-            if (tile.getPlant() == target) {
-                tile.setPlant(null);
-                if (tile.getSupportPlant() != null) {
-                    tile.setPlant(tile.getSupportPlant());
-                    game.addPlant(tile.getSupportPlant());
-                    tile.setSupportPlant(null);
-                }
-            } else if (tile.getSupportPlant() == target) {
+        if (tile == null) return "Error: Tile out of bounds.";
+
+        Plant target = null;
+        if (tile.getPlant() != null) {
+            target = tile.getPlant();
+            tile.setPlant(null);
+            if (tile.getSupportPlant() != null) {
+                tile.setPlant(tile.getSupportPlant());
+                game.addPlant(tile.getSupportPlant());
                 tile.setSupportPlant(null);
             }
+        } else if (tile.getPumpkinPlant() != null) {
+            target = tile.getPumpkinPlant();
+            tile.setPumpkinPlant(null);
+        } else if (tile.getSupportPlant() != null) {
+            target = tile.getSupportPlant();
+            tile.setSupportPlant(null);
         }
-        return "Successfully plucked plant at (" + x + ", " + y + ")";
+
+        if (target == null) return "Error: There is no plant at this location to pluck.";
+        game.removePlant(target);
+        return "Successfully plucked " + target.getName() + " at (" + x + ", " + y + ")";
     }
 
     public String feedPlant(Game game, int x, int y) {
         if (game == null) return "Error: No active game session.";
-        Plant target = game.getPlantAt(x, y);
+        Tile tile = game.getBoard().getTile(y, x);
+        Plant target = tile != null ? (tile.getPlant() != null ? tile.getPlant() : tile.getPumpkinPlant()) : null;
         if (target == null) return "Error: There is no plant here to feed.";
         if (game.getPlantFoodCount() <= 0) return "Error: You do not have any plant food left.";
         if (game.usePlantFood()) {

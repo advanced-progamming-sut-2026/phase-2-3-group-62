@@ -7,18 +7,22 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Scaling;
 import main.Maini;
+import model.entities.PlantType;
 import model.entities.plant.Plant;
 import pvz.libpvz.pam.PamPlayer;
 
 public class PlantCard extends Table {
     private final Plant plant;
-    private final PamActor animActor;
+    private final Actor visualActor;
     private final Label costLabel;
     private final Label rechargeLabel;
     private float currentCooldown = 0f;
@@ -42,9 +46,36 @@ public class PlantCard extends Table {
             setBackground(new TextureRegionDrawable(cardBg));
         }
 
-        animActor = new PamActor(pamPlayer, plant.getPamPath(), null, 0.24f);
-        animActor.setSize(72, 72);
-        animActor.setTouchable(Touchable.disabled);
+        PlantType pType = PlantType.fromName(plant.getName());
+        Actor visual = null;
+
+        if (pType != null && pType.getIconRegionName() != null) {
+            TextureRegion iconReg = game.getTextureBank().region(pType.getIconRegionName());
+            if (iconReg != null) {
+                Image iconImg = new Image(iconReg);
+                iconImg.setScaling(Scaling.fit);
+                iconImg.setAlign(Align.center);
+                visual = iconImg;
+            }
+        }
+
+        if (visual == null) {
+            PamActor animActor = new PamActor(pamPlayer, plant.getPamPath(), "idle", 0.24f) {
+                @Override
+                public void act(float delta) {
+                    super.act(0f);
+                }
+            };
+            animActor.act(1.4f);
+            visual = animActor;
+        }
+
+        this.visualActor = visual;
+        this.visualActor.setTouchable(Touchable.disabled);
+
+        Container<Actor> iconContainer = new Container<>(visualActor);
+        iconContainer.size(56, 56);
+        iconContainer.fill();
 
         costLabel = new Label(String.valueOf(plant.getCost()), skin, "big");
         costLabel.setFontScale(0.65f);
@@ -57,8 +88,8 @@ public class PlantCard extends Table {
         rechargeLabel.setTouchable(Touchable.disabled);
 
         Table topRow = new Table();
-        topRow.add(animActor).size(72, 72).center();
-        add(topRow).size(72, 72).padTop(6).center().row();
+        topRow.add(iconContainer).size(56, 56).center();
+        add(topRow).size(72, 72).padTop(4).center().row();
 
         Table bottomRow = new Table();
         bottomRow.add(rechargeLabel).left().padLeft(6);
@@ -114,8 +145,8 @@ public class PlantCard extends Table {
         return plant;
     }
 
-    public PamActor getAnimActor() {
-        return animActor;
+    public Actor getVisualActor() {
+        return visualActor;
     }
 
     public boolean isAvailable() {

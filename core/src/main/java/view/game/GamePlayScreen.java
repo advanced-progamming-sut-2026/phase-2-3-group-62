@@ -136,14 +136,12 @@ public class GamePlayScreen implements Screen {
     }
 
     public void triggerScreenWind(float duration) {
-
         float cx = GameGrid.getGridStartX() + (GameGrid.GRID_TOTAL_WIDTH / 2f);
         float cy = GameGrid.getGridStartY() + (GameGrid.GRID_TOTAL_HEIGHT / 2f);
         activeWindEffects.add(new WindEffect(cx, cy, duration));
     }
 
     public void triggerRowWind(int row, float duration) {
-
         float cx = GameGrid.getGridStartX() + (GameGrid.GRID_TOTAL_WIDTH / 2f);
         float ry = GameGrid.getGridStartY() + ((4 - row) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
         activeWindEffects.add(new WindEffect(cx, ry, duration));
@@ -151,7 +149,6 @@ public class GamePlayScreen implements Screen {
     }
 
     public void triggerTileWind(int row, int col, float duration) {
-
         Vector2 pos = GameGrid.getTileCenterPosition(row, col);
         activeWindEffects.add(new WindEffect(pos.x, pos.y, duration));
     }
@@ -303,8 +300,28 @@ public class GamePlayScreen implements Screen {
         if (modelGame == null || row < 0 || row >= GameGrid.ROWS || col < 0 || col >= GameGrid.COLS) return false;
         Tile t = modelGame.getBoard().getTile(row, col);
         if (t == null) return false;
-        if (t.getType() == TileType.GRAVE || t.isCrater() || t.isOnFire()) return false;
-        return t.getPlant() == null;
+        if (t.isCrater() || t.isOnFire()) return false;
+
+        String selectedName = selectedPlantToPlant != null ? selectedPlantToPlant.getName().replace(" ", "").replace("-", "").toLowerCase() : "";
+        boolean isGraveBuster = selectedName.equalsIgnoreCase("gravebuster");
+        boolean isPumpkin = selectedName.equalsIgnoreCase("pumpkin");
+        boolean isPeaPod = selectedName.equalsIgnoreCase("peapod");
+
+        if (isGraveBuster) {
+            return t.getType() == TileType.GRAVE && t.getPlant() == null;
+        }
+
+        if (t.getType() == TileType.GRAVE) return false;
+
+        if (isPeaPod && t.getPlant() != null && t.getPlant().getName().replace(" ", "").replace("-", "").equalsIgnoreCase("peapod")) {
+            return t.getPlant().getPeaPodHeads() < 5;
+        }
+
+        if (isPumpkin) {
+            return t.getPumpkinPlant() == null;
+        } else {
+            return t.getPlant() == null;
+        }
     }
 
     private void updateHoverAndHighlight() {
@@ -329,7 +346,7 @@ public class GamePlayScreen implements Screen {
             } else if (currentToolMode == ToolMode.SHOVEL || currentToolMode == ToolMode.PLANT_FOOD) {
                 Game mg = gameController.getGame();
                 Tile t = mg != null ? mg.getBoard().getTile(hoveredRow, hoveredCol) : null;
-                isValid = t != null && t.getPlant() != null;
+                isValid = t != null && (t.getPlant() != null || t.getPumpkinPlant() != null || t.getSupportPlant() != null);
             }
             hud.setHighlight(true, hx, hy, isValid);
         } else {
@@ -538,9 +555,18 @@ public class GamePlayScreen implements Screen {
         }
 
         lawnRenderer.renderLawnElements(batch, gameController.getGame(), stateTime);
-        plantRenderer.render(batch, gameController.getGame(), stateTime, effectiveDelta);
-        zombieRenderer.render(batch, gameController.getGame(), stateTime, effectiveDelta);
-        zombossRenderer.render(batch, gameController.getGame(), stateTime, effectiveDelta);
+
+        // ترتیب رندر بر اساس ردیف: از ردیف 0 (بالا) به ردیف 4 (پایین)
+        // تا هر المانی که در ردیف پایین‌تر قرار دارد روی بالایی‌ها بیفتد
+        if (modelGame != null) {
+            for (int r = 0; r < GameGrid.ROWS; r++) {
+                plantRenderer.renderRow(batch, modelGame, r, stateTime, effectiveDelta);
+                zombieRenderer.renderRow(batch, modelGame, r, stateTime, effectiveDelta);
+            }
+            zombossRenderer.render(batch, modelGame, stateTime, effectiveDelta);
+            zombieRenderer.renderDyingZombies(batch, effectiveDelta);
+        }
+
         projectileRenderer.render(batch, gameController.getGame(), stateTime);
 
         for (WindEffect wind : activeWindEffects) {

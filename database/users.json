@@ -1955,7 +1955,7 @@
     "gender": "MALE",
     "securityQuestion": "2",
     "securityAnswer": "8254c329a92850f6d539dd376f4816ee2764517da5e0235514af433164480d7a",
-    "score": 197730,
+    "score": 202755,
     "news": [
       {
         "content": "New plant unlocked: Sunflower! Check your collection.",
@@ -2235,11 +2235,143 @@
       },
       {
         "content": "Congratulations! Level completed successfully.",
+        "isRead": true
+      },
+      {
+        "content": "Congratulations! Level completed successfully.",
+        "isRead": true
+      },
+      {
+        "content": "New plant unlocked: Wasabi Whip! Check your collection.",
+        "isRead": true
+      },
+      {
+        "content": "New plant unlocked: Chomper! Check your collection.",
+        "isRead": true
+      },
+      {
+        "content": "New plant unlocked: Tall-nut! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Enlighten-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Arma-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Bombard-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Enforce-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Reinforce-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Enchant-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Pierce-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: catTail-mint! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Ice-shroom! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Imitater! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Sun Bean! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Torchwood! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Magnet-shroom! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Hot Potato! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Hypno-shroom! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Cat-tail! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Explode-o-nut! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Sweet Potato! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Garlic! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Endurian! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Kiwibeast! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Phat Beet! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Bonk Choy! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "Congratulations! Level completed successfully.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Wall-nut! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "New plant unlocked: Jalapeno! Check your collection.",
+        "isRead": false
+      },
+      {
+        "content": "Congratulations! Level completed successfully.",
+        "isRead": false
+      },
+      {
+        "content": "New zombie encountered: ZombieIceAgeHunter!",
+        "isRead": false
+      },
+      {
+        "content": "New zombie encountered: ZombieIceAgeDodo!",
         "isRead": false
       }
     ],
-    "coins": 5530,
-    "gems": 1414,
+    "coins": 1530,
+    "gems": 1220,
     "unlockedPlants": [
       "PeaShooter",
       "Sunflower",
@@ -2281,7 +2413,35 @@
       "Cherry Bomb",
       "Squash",
       "Grapeshot",
-      "Pumpkin"
+      "Pumpkin",
+      "Wasabi Whip",
+      "Chomper",
+      "Tall-nut",
+      "Enlighten-mint",
+      "Arma-mint",
+      "Bombard-mint",
+      "Enforce-mint",
+      "Reinforce-mint",
+      "Enchant-mint",
+      "Pierce-mint",
+      "catTail-mint",
+      "Ice-shroom",
+      "Imitater",
+      "Sun Bean",
+      "Torchwood",
+      "Magnet-shroom",
+      "Hot Potato",
+      "Hypno-shroom",
+      "Cat-tail",
+      "Explode-o-nut",
+      "Sweet Potato",
+      "Garlic",
+      "Endurian",
+      "Kiwibeast",
+      "Phat Beet",
+      "Bonk Choy",
+      "Wall-nut",
+      "Jalapeno"
     ],
     "observedZombies": [
       "ZombieExplorer",
@@ -2304,7 +2464,9 @@
       "ZombieWizard",
       "ZombieIceAgeTroglobite",
       "ZombieBeachFisherman",
-      "ZombieBeachOctopus"
+      "ZombieBeachOctopus",
+      "ZombieIceAgeHunter",
+      "ZombieIceAgeDodo"
     ],
     "plantLevels": {
       "PeaShooter": 1,
@@ -2348,13 +2510,48 @@
       "Cherry Bomb": 1,
       "Squash": 1,
       "Grapeshot": 1,
-      "Pumpkin": 1
+      "Pumpkin": 1,
+      "Wasabi Whip": 1,
+      "Chomper": 1,
+      "Tall-nut": 1,
+      "Enlighten-mint": 1,
+      "Arma-mint": 1,
+      "Bombard-mint": 1,
+      "Enforce-mint": 1,
+      "Reinforce-mint": 1,
+      "Enchant-mint": 1,
+      "Pierce-mint": 1,
+      "catTail-mint": 1,
+      "Ice-shroom": 1,
+      "Imitater": 1,
+      "Sun Bean": 1,
+      "Torchwood": 1,
+      "Magnet-shroom": 1,
+      "Hot Potato": 1,
+      "Hypno-shroom": 1,
+      "Cat-tail": 1,
+      "Explode-o-nut": 1,
+      "Sweet Potato": 1,
+      "Garlic": 1,
+      "Endurian": 1,
+      "Kiwibeast": 1,
+      "Phat Beet": 1,
+      "Bonk Choy": 1,
+      "Wall-nut": 1,
+      "Jalapeno": 1
     },
     "greenhouseBoosts": {
       "Peashooter": true,
       "Sunflower": true,
       "Snow Pea": true,
-      "Twin Sunflower": true
+      "Twin Sunflower": true,
+      "Threepeater": true,
+      "Doom-shroom": true,
+      "Primal Potato Mine": true,
+      "Cactus": true,
+      "Split Pea": true,
+      "Kernel-pult": true,
+      "Primal Sunflower": true
     },
     "plantFoodInventory": 1,
     "seedPackets": {
@@ -2366,24 +2563,19 @@
         "row": 0,
         "column": 0,
         "plant": {
-          "id": 8,
-          "name": "Threepeater",
-          "category": "SHOOTER",
-          "tags": [
-            "PEA"
-          ],
-          "cost": 300,
-          "baseHp": 300,
-          "damage": 20,
-          "actionInterval": 1.5,
-          "recharge": 5.0,
-          "abilityType": "SHOOT_PROJECTILE",
-          "abilityValue": 3.0,
-          "plantFoodType": "PROJECTILE_BURST",
-          "plantFoodValue": 180.0,
-          "pamPath": "768/INITIAL/PLANT/THREEPEATER/THREEPEATER.PAM",
-          "health": 300,
-          "maxHealth": 300,
+          "id": 999,
+          "name": "Marigold",
+          "category": "Marigold",
+          "cost": 0,
+          "baseHp": 100,
+          "damage": 0,
+          "actionInterval": 0.0,
+          "recharge": 0.0,
+          "abilityValue": 0.0,
+          "plantFoodValue": 0.0,
+          "pamPath": "",
+          "health": 100,
+          "maxHealth": 100,
           "isBoosted": false,
           "hasSunToCollect": false,
           "x": 0,
@@ -2412,8 +2604,8 @@
           "level": 1
         },
         "locked": false,
-        "plantedTime": 1787037615466,
-        "growthTime": 28800000,
+        "plantedTime": 1787217649807,
+        "growthTime": 7200000,
         "readyToHarvest": false,
         "isGrowing": true
       },
@@ -2467,7 +2659,7 @@
           "level": 1
         },
         "locked": false,
-        "plantedTime": 1787037616065,
+        "plantedTime": 1787217657342,
         "growthTime": 28800000,
         "readyToHarvest": false,
         "isGrowing": true
@@ -2476,78 +2668,19 @@
         "row": 0,
         "column": 2,
         "plant": {
-          "id": 31,
-          "name": "Primal Potato Mine",
-          "category": "EXPLOSIVE",
-          "tags": [
-            "TRAP",
-            "CHARGE"
-          ],
-          "cost": 50,
-          "baseHp": 300,
-          "damage": 2400,
-          "actionInterval": 5.0,
-          "recharge": 5.0,
-          "abilityType": "DELAYED_EXPLOSIVE",
-          "abilityValue": 9.0,
-          "plantFoodType": "SPAWN_CLONES",
-          "plantFoodValue": 2.0,
-          "pamPath": "768/FULL/PLANT/PRIMAL_POTATOMINE/PRIMAL_POTATOMINE.PAM",
-          "health": 300,
-          "maxHealth": 300,
-          "isBoosted": false,
-          "hasSunToCollect": false,
-          "x": 0,
-          "y": 0,
-          "freezeLevel": 0,
-          "iceHealth": 0,
-          "isTransformedToSheep": false,
-          "animState": "idle",
-          "animStateTimer": 0.0,
-          "dx": 0,
-          "dy": 0,
-          "hitCount": 0,
-          "isBowlingBall": false,
-          "tickCounter": 0,
-          "plantStage": 1,
-          "stageTickCounter": 0,
-          "lifespanTicks": 600,
-          "isArmed": false,
-          "armTimerTicks": 50,
-          "digestTimerTicks": 0,
-          "peaPodHeads": 1,
-          "hasPlantFoodArmor": false,
-          "armorHp": 0,
-          "isBlueFlame": false,
-          "magnetCooldownTicks": 0,
-          "level": 1
-        },
-        "locked": false,
-        "plantedTime": 1787037616614,
-        "growthTime": 28800000,
-        "readyToHarvest": false,
-        "isGrowing": true
-      },
-      {
-        "row": 0,
-        "column": 3,
-        "plant": {
-          "id": 17,
-          "name": "Cactus",
-          "category": "STRIKE_THROUGH",
-          "tags": [],
-          "cost": 175,
-          "baseHp": 300,
-          "damage": 30,
-          "actionInterval": 1.5,
-          "recharge": 5.0,
-          "abilityType": "SHOOT_PROJECTILE",
-          "abilityValue": 3.0,
-          "plantFoodType": "PROJECTILE_BURST",
-          "plantFoodValue": 100.0,
-          "pamPath": "768/INITIAL/PLANT/CACTUS/CACTUS.PAM",
-          "health": 300,
-          "maxHealth": 300,
+          "id": 999,
+          "name": "Marigold",
+          "category": "Marigold",
+          "cost": 0,
+          "baseHp": 100,
+          "damage": 0,
+          "actionInterval": 0.0,
+          "recharge": 0.0,
+          "abilityValue": 0.0,
+          "plantFoodValue": 0.0,
+          "pamPath": "",
+          "health": 100,
+          "maxHealth": 100,
           "isBoosted": false,
           "hasSunToCollect": false,
           "x": 0,
@@ -2576,8 +2709,58 @@
           "level": 1
         },
         "locked": false,
-        "plantedTime": 1787037617397,
-        "growthTime": 28800000,
+        "plantedTime": 1787217650624,
+        "growthTime": 7200000,
+        "readyToHarvest": false,
+        "isGrowing": true
+      },
+      {
+        "row": 0,
+        "column": 3,
+        "plant": {
+          "id": 999,
+          "name": "Marigold",
+          "category": "Marigold",
+          "cost": 0,
+          "baseHp": 100,
+          "damage": 0,
+          "actionInterval": 0.0,
+          "recharge": 0.0,
+          "abilityValue": 0.0,
+          "plantFoodValue": 0.0,
+          "pamPath": "",
+          "health": 100,
+          "maxHealth": 100,
+          "isBoosted": false,
+          "hasSunToCollect": false,
+          "x": 0,
+          "y": 0,
+          "freezeLevel": 0,
+          "iceHealth": 0,
+          "isTransformedToSheep": false,
+          "animState": "idle",
+          "animStateTimer": 0.0,
+          "dx": 0,
+          "dy": 0,
+          "hitCount": 0,
+          "isBowlingBall": false,
+          "tickCounter": 0,
+          "plantStage": 1,
+          "stageTickCounter": 0,
+          "lifespanTicks": 600,
+          "isArmed": false,
+          "armTimerTicks": 0,
+          "digestTimerTicks": 0,
+          "peaPodHeads": 1,
+          "hasPlantFoodArmor": false,
+          "armorHp": 0,
+          "isBlueFlame": false,
+          "magnetCooldownTicks": 0,
+          "level": 1
+        },
+        "locked": false,
+        "plantedTime": 1787217651140,
+        "growthTime": 7200000,
         "readyToHarvest": false,
         "isGrowing": true
       },
@@ -2594,22 +2777,22 @@
         "row": 1,
         "column": 0,
         "plant": {
-          "id": 12,
-          "name": "Split Pea",
+          "id": 6,
+          "name": "Peashooter",
           "category": "SHOOTER",
           "tags": [
             "PEA"
           ],
-          "cost": 125,
+          "cost": 100,
           "baseHp": 300,
           "damage": 20,
           "actionInterval": 1.5,
           "recharge": 5.0,
           "abilityType": "SHOOT_PROJECTILE",
-          "abilityValue": 3.0,
+          "abilityValue": 1.0,
           "plantFoodType": "PROJECTILE_BURST",
-          "plantFoodValue": 90.0,
-          "pamPath": "768/FULL/PLANT/SPLITPEA/SPLITPEA.PAM",
+          "plantFoodValue": 60.0,
+          "pamPath": "768/INITIAL/PLANT/PEASHOOTER/PEASHOOTER.PAM",
           "health": 300,
           "maxHealth": 300,
           "isBoosted": false,
@@ -2640,7 +2823,7 @@
           "level": 1
         },
         "locked": false,
-        "plantedTime": 1787060863469,
+        "plantedTime": 1787217651841,
         "growthTime": 28800000,
         "readyToHarvest": false,
         "isGrowing": true
@@ -3094,7 +3277,7 @@
         "variableN": 20
       }
     ],
-    "lastSeasonCompleted": 2,
+    "lastSeasonCompleted": 3,
     "lastLevelCompleted": 4,
     "completedMiniGames": 0,
     "completedDailyQuests": 13,

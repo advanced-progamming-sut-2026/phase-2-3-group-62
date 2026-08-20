@@ -314,7 +314,7 @@ public class Zombie {
     }
 
     public void updateEffects() {
-        updateEffects(1.0);
+        updateEffects(0.1);
     }
 
     public void updateCooldown() {

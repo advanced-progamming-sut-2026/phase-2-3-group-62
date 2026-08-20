@@ -5,6 +5,7 @@ import model.board.Bullet;
 import model.board.DroppedItem;
 import model.board.LawnMower;
 import model.board.Sun;
+import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.zombie.Spawner;
 import model.entities.zombie.Zombie;
@@ -39,7 +40,7 @@ public class Game {
     private int diamonds;
     private int plantFoodCount;
     private Spawner spawner;
-    private ScoreGame scoreGame;
+    private final ScoreGame scoreGame;
     private Greenhouse greenhouse;
     private List<Bullet> bullets;
     private List<Sun> suns;
@@ -292,7 +293,15 @@ public class Game {
     public void checkPlantDeath(Plant plant) {
         if (plant != null && !plant.isAlive()) {
             activePlants.remove(plant);
-            board.getTile(plant.getY(), plant.getX()).setPlant(null);
+            Tile t = board.getTile(plant.getY(), plant.getX());
+            if (t != null) {
+                if (t.getPlant() == plant) {
+                    t.setPlant(null);
+                }
+                if (t.getPumpkinPlant() == plant) {
+                    t.setPumpkinPlant(null);
+                }
+            }
             plantsLostCount++;
             gameLogMessages.add("Plant " + plant.getName() + " at (" + plant.getX() + ", " + plant.getY() + ") is destroyed.");
 
@@ -320,6 +329,30 @@ public class Game {
             if (!z.isHypnotized()) {
                 if (z instanceof Zomboss && ((Zomboss) z).occupiesRow(row)) return true;
                 if (z.getY() == row) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasZombieInRowAhead(int row, double x) {
+        for (Zombie z : activeZombies) {
+            if (!z.isHypnotized()) {
+                boolean inRow = (z instanceof Zomboss) ? ((Zomboss) z).occupiesRow(row) : (z.getY() == row);
+                if (inRow && z.getX() >= x) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean hasZombieInRowBehind(int row, double x) {
+        for (Zombie z : activeZombies) {
+            if (!z.isHypnotized()) {
+                boolean inRow = (z instanceof Zomboss) ? ((Zomboss) z).occupiesRow(row) : (z.getY() == row);
+                if (inRow && z.getX() < x) {
+                    return true;
+                }
             }
         }
         return false;

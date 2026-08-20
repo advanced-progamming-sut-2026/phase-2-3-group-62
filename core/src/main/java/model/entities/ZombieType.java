@@ -8,7 +8,7 @@ public enum ZombieType {
     BUCKET_HEAD("ZombieArmor2", "Buckethead Zombie", "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM", 100, 190, 0.185, 400, "Bucket", 1100, true, 0.28f, 0f, 0f),
     BRICK_HEAD("ZombieArmor4", "Brickhead Zombie", "768/INITIAL/ZOMBIE/ZOMBIE_EGYPT_BASIC/ZOMBIE_EGYPT_BASIC.PAM", 100, 190, 0.185, 700, "Brick", 2200, false, 0.28f, 0f, 0f),
     KNIGHT("ZombieDarkArmor3", "Knight Zombie", "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM", 100, 190, 0.185, 550, "Crown", 1600, true, 0.28f, 0f, 0f),
-    GARGANTUAR("ZombieGargantuar", "Gargantuar", "768/FULL/ZOMBIE/GARGANTUAR/GARGANTUAR.PAM", 1500, 3600, 0.240, 1500, "none", 0, false, 0.24f, 0f, 0f),
+    GARGANTUAR("ZombieGargantuar", "Gargantuar", "768/FULL/ZOMBIE/DARK_GARGANTUAR/DARK_GARGANTUAR.PAM", 1500, 3600, 0.240, 1500, "none", 0, false, 0.24f, 0f, 0f),
     IMP("ZombieImp", "Imp", "768/FULL/ZOMBIE/ZOMBIE_DARK_IMP_MONK/ZOMBIE_DARK_IMP_MONK.PAM", 100, 190, 0.220, 100, "none", 0, false, 0.28f, 0f, 0f),
     IMP_DRAGON("ZombieDarkImpDragon", "Dragon Imp", "768/FULL/ZOMBIE/ZOMBIE_DARK_IMP_DRAGON/ZOMBIE_DARK_IMP_DRAGON.PAM", 100, 190, 0.185, 150, "none", 0, false, 0.28f, 0f, 0f),
     UMBRELLA("ZombieLostCityJane", "Parasol Zombie", "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_JANE/ZOMBIE_LOSTCITY_JANE.PAM", 100, 350, 0.250, 200, "none", 0, false, 0.28f, 0f, 0f),

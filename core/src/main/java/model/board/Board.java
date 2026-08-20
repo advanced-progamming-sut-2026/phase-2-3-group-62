@@ -148,27 +148,83 @@ public class Board {
 
             if (tile != null && tile.getPlant() != null && tile.getPlant().getName().replace(" ", "").replace("-", "").equalsIgnoreCase("Torchwood")) {
                 if (bullet.getType() == Bullet.BulletType.NORMAL || bullet.getType() == Bullet.BulletType.ICE) {
-                    bulletsToRemove.add(bullet);
-                    int mult = tile.getPlant().isBlueFlame() ? 3 : 2;
-                    Bullet fireBullet = new Bullet(
-                        bullet.getDamage() * mult,
-                        bRow,
-                        (int) Math.floor(newBulletX) + 1,
-                        Bullet.BulletType.FIRE,
-                        bullet.isPierce(),
-                        bullet.isExplosive(),
-                        bullet.getSplashRadius()
-                    );
-                    fireBullet.setPlantName("Torchwood");
-                    bulletsToAdd.add(fireBullet);
-                    game.getGameLogMessages().add("Torchwood ignited passing pea! Damage multiplied by " + mult);
-                    continue;
+                    if (bullet.getDx() > 0) {
+                        bulletsToRemove.add(bullet);
+                        int mult = tile.getPlant().isBlueFlame() ? 3 : 2;
+                        Bullet fireBullet = new Bullet(
+                            bullet.getDamage() * mult,
+                            bRow,
+                            (int) Math.floor(newBulletX) + 1,
+                            Bullet.BulletType.FIRE,
+                            bullet.isPierce(),
+                            bullet.isExplosive(),
+                            bullet.getSplashRadius()
+                        );
+                        fireBullet.setPlantName("Torchwood");
+                        fireBullet.setDx(bullet.getDx());
+                        fireBullet.setDy(bullet.getDy());
+                        bulletsToAdd.add(fireBullet);
+                        game.getGameLogMessages().add("Torchwood ignited passing pea! Damage multiplied by " + mult);
+                        continue;
+                    }
                 }
             }
 
-            if (tile != null && tile.isGrave() && bullet.getType() != Bullet.BulletType.LOB) {
-                if (oldBulletX <= checkTileCol && newBulletX >= checkTileCol) {
+            Zombie targetZombie = null;
+            for (Zombie z : game.getActiveZombies()) {
+                if (!z.isHypnotized()) {
+                    boolean inRow = (z instanceof Zomboss) ? ((Zomboss) z).occupiesRow(bRow) : (Math.abs(z.getY() - bullet.getExactRow()) <= 0.65);
+                    if (inRow) {
+                        double zombieX = z.getX();
+                        boolean hit = false;
+                        if (bullet.getType() == Bullet.BulletType.LOB) {
+                            if (newBulletX >= bullet.getTargetColumn() && Math.abs(zombieX - bullet.getTargetColumn()) <= 0.8) {
+                                hit = true;
+                            }
+                        } else if (bullet.getDx() >= 0) {
+                            if (newBulletX >= zombieX && oldBulletX <= zombieX + 0.8) {
+                                hit = true;
+                            }
+                        } else {
+                            if (newBulletX <= zombieX + 0.8 && oldBulletX >= zombieX) {
+                                hit = true;
+                            }
+                        }
+
+                        if (hit) {
+                            targetZombie = z;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            boolean hitGrave = false;
+            if (targetZombie == null && tile != null && tile.isGrave()) {
+                if (bullet.getType() == Bullet.BulletType.LOB) {
+                    if (newBulletX >= bullet.getTargetColumn() && Math.abs(checkTileCol - bullet.getTargetColumn()) <= 0.6) {
+                        hitGrave = true;
+                    }
+                } else if (bullet.getDx() > 0) {
+                    if (oldBulletX <= checkTileCol && newBulletX >= checkTileCol) {
+                        hitGrave = true;
+                    }
+                } else if (bullet.getDx() < 0) {
+                    if (oldBulletX >= checkTileCol && newBulletX <= checkTileCol) {
+                        hitGrave = true;
+                    }
+                }
+
+                if (hitGrave) {
                     tile.setGraveHealth(tile.getGraveHealth() - bullet.getDamage());
+
+                    String explosionPam = ProjectileRenderer.getExplosionPamForBullet(bullet);
+                    if (explosionPam != null) {
+                        float hitPx = view.game.GameGrid.getGridStartX() + ((float) checkTileCol * view.game.GameGrid.TILE_WIDTH) + (view.game.GameGrid.TILE_WIDTH / 2f);
+                        float hitPy = view.game.GameGrid.getGridStartY() + ((4 - bRow) * view.game.GameGrid.TILE_HEIGHT) + (view.game.GameGrid.TILE_HEIGHT / 2f);
+                        ProjectileRenderer.triggerStaticImpact(explosionPam, hitPx, hitPy);
+                    }
+
                     if (!bullet.isPierce()) {
                         bulletsToRemove.add(bullet);
                     }
@@ -182,22 +238,8 @@ public class Board {
                 }
             }
 
-            Zombie targetZombie = null;
-            for (Zombie z : game.getActiveZombies()) {
-                if (!z.isHypnotized()) {
-                    boolean inRow = (z instanceof Zomboss) ? ((Zomboss) z).occupiesRow(bRow) : (z.getY() == bRow);
-                    if (inRow) {
-                        double zombieX = z.getX();
-                        if (newBulletX >= zombieX && oldBulletX <= zombieX + 0.8) {
-                            targetZombie = z;
-                            break;
-                        }
-                    }
-                }
-            }
-
             if (targetZombie != null) {
-                boolean bypassArmor = (bullet.getType() == Bullet.BulletType.POISON);
+                boolean bypassArmor = (bullet.getType() == Bullet.BulletType.POISON || bullet.getPlantName().equalsIgnoreCase("Fume-shroom") || bullet.getPlantName().equalsIgnoreCase("Fumeshroom"));
                 if (targetZombie instanceof Zomboss) {
                     Zomboss b = (Zomboss) targetZombie;
                     b.takeBossDamage(bullet.getDamage());
@@ -210,7 +252,7 @@ public class Board {
                 bullet.incrementHitZombieCount();
 
                 if (bullet.getType() == Bullet.BulletType.ICE) {
-                    targetZombie.applyChilled(3.0);
+                    targetZombie.applyChilled(6.0);
                 }
 
                 if (bullet.isExplosive() && bullet.getSplashRadius() > 0) {
@@ -232,7 +274,7 @@ public class Board {
                                     }
                                 }
                                 if (bullet.getType() == Bullet.BulletType.ICE) {
-                                    splashZ.applyChilled(3.0);
+                                    splashZ.applyChilled(6.0);
                                 }
                             }
                         }

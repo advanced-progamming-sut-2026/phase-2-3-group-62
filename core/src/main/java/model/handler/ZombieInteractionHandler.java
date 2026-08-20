@@ -68,16 +68,27 @@ public class ZombieInteractionHandler {
                         game.addGameLogMessage("Iceberg Lettuce froze zombie " + zombie.getName() + "!");
                         break;
                     } else if ((pName.equalsIgnoreCase("Potato Mine") || pName.equalsIgnoreCase("Primal Potato Mine")) && plant.isArmed()) {
-                        int rad = pName.contains("Primal") ? 1 : 0;
-                        for (Zombie az : new ArrayList<>(game.getActiveZombies())) {
-                            if (!(az instanceof Zomboss) && Math.abs(az.getY() - plant.getY()) <= rad && Math.abs(az.getX() - plant.getX()) <= (rad + 0.8)) {
-                                az.takeDamage(plant.getDamage() > 0 ? plant.getDamage() : 1800, true);
+                        if (Math.abs(zombieXCoord - plant.getX()) <= 0.25) {
+                            int rad = pName.contains("Primal") ? 1 : 0;
+                            for (Zombie az : new ArrayList<>(game.getActiveZombies())) {
+                                if (!(az instanceof Zomboss) && Math.abs(az.getY() - plant.getY()) <= rad && Math.abs(az.getX() - plant.getX()) <= (rad + 0.5)) {
+                                    az.takeDamage(plant.getDamage() > 0 ? plant.getDamage() : 1800, true);
+                                }
                             }
+                            game.removePlant(plant);
+                            game.getBoard().getTile(plant.getY(), plant.getX()).setPlant(null);
+                            game.addGameLogMessage(pName + " detonated on zombie contact!");
+                            break;
                         }
-                        game.removePlant(plant);
-                        game.getBoard().getTile(plant.getY(), plant.getX()).setPlant(null);
-                        game.addGameLogMessage(pName + " detonated on zombie contact!");
-                        break;
+                    } else if (pName.equalsIgnoreCase("Tangle Kelp") || pName.equalsIgnoreCase("TangleKelp")) {
+                        if (plant.getHitCount() == 0) {
+                            plant.triggerAttack(1.2f);
+                            zombie.takeDamage(99999, true);
+                            plant.incrementHitCount();
+                            plant.setLifespanTicks(12);
+                            game.addGameLogMessage("Tangle Kelp dragged zombie " + zombie.getName() + " down underwater!");
+                            break;
+                        }
                     }
                 }
             }
@@ -105,7 +116,7 @@ public class ZombieInteractionHandler {
                         boolean shouldJump = false;
                         if (nextTile != null && nextTile.isSlideway()) shouldJump = true;
                         if (plantAtNext != null && plantAtNext.getName().equalsIgnoreCase("WallNut") && !plantAtNext.getName().equalsIgnoreCase("TallNut")) shouldJump = true;
-                        if (plantAtNext != null && (plantAtNext.getName().equalsIgnoreCase("Chomper") || plantAtNext.getName().equalsIgnoreCase("Squash") || plantAtNext.getName().equalsIgnoreCase("PotatoMine") || plantAtNext.getName().equalsIgnoreCase("PrimalPotatoMine"))) shouldJump = true;
+                        if (plantAtNext != null && (plantAtNext.getName().equalsIgnoreCase("Chomper") || plantAtNext.getName().equalsIgnoreCase("Squash") || plantAtNext.getName().equalsIgnoreCase("PotatoMine") || plantAtNext.getName().equalsIgnoreCase("PrimalPotatoMine") || plantAtNext.getName().equalsIgnoreCase("TangleKelp") || plantAtNext.getName().equalsIgnoreCase("Tangle Kelp"))) shouldJump = true;
 
                         if (shouldJump) {
                             int jumpDistance = 2;
@@ -117,18 +128,30 @@ public class ZombieInteractionHandler {
                     }
                 }
 
-                int targetPlantX = (int) Math.floor(zombieX);
-                if (zombieX - targetPlantX == 0.0) {
-                    targetPlantX = targetPlantX - 1;
+                int targetTileX = (int) Math.floor(zombieX);
+                if (zombieX - targetTileX == 0.0) {
+                    targetTileX = targetTileX - 1;
                 }
 
-                Plant targetPlant = game.getPlantAt(targetPlantX, zombieY);
+                Tile targetTile = (targetTileX >= 0 && targetTileX < game.getBoard().getColumns()) ? game.getBoard().getTile(zombieY, targetTileX) : null;
+                Plant targetPlant = null;
+                if (targetTile != null) {
+                    if (targetTile.getPumpkinPlant() != null && targetTile.getPumpkinPlant().isAlive()) {
+                        targetPlant = targetTile.getPumpkinPlant();
+                    } else if (targetTile.getPlant() != null && !targetTile.getPlant().isBowlingBall()) {
+                        String plantName = targetTile.getPlant().getName();
+                        if (!plantName.equalsIgnoreCase("Potato Mine") && !plantName.equalsIgnoreCase("Primal Potato Mine") && !plantName.equalsIgnoreCase("PotatoMine") && !plantName.equalsIgnoreCase("PrimalPotatoMine") && !plantName.equalsIgnoreCase("Tangle Kelp") && !plantName.equalsIgnoreCase("TangleKelp")) {
+                            targetPlant = targetTile.getPlant();
+                        }
+                    }
+                }
 
-                if (targetPlant != null && !targetPlant.isBowlingBall() && zombieX - targetPlant.getX() <= 1.05) {
+                if (targetPlant != null && zombieX - targetPlant.getX() <= 1.05) {
                     zombie.setEating(true);
                     if (zombie.isBarrelRoller() && !zombie.isBarrelDestroyed()) {
                         game.removePlant(targetPlant);
-                        game.getBoard().getTile(targetPlant.getY(), targetPlant.getX()).setPlant(null);
+                        if (targetTile.getPumpkinPlant() == targetPlant) targetTile.setPumpkinPlant(null);
+                        else targetTile.setPlant(null);
                         game.incrementPlantsLost();
                         game.addGameLogMessage("Barrel Roller crushed " + targetPlant.getName() + " at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
                         continue;
@@ -136,7 +159,8 @@ public class ZombieInteractionHandler {
 
                     if (zombie.isTroglobite() && !zombie.isIceBlockDestroyed()) {
                         game.removePlant(targetPlant);
-                        game.getBoard().getTile(targetPlant.getY(), targetPlant.getX()).setPlant(null);
+                        if (targetTile.getPumpkinPlant() == targetPlant) targetTile.setPumpkinPlant(null);
+                        else targetTile.setPlant(null);
                         game.incrementPlantsLost();
                         game.addGameLogMessage("Troglobite crushed " + targetPlant.getName() + " with ice block at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
                         continue;
@@ -150,7 +174,8 @@ public class ZombieInteractionHandler {
 
                     if (zombie.getName().equalsIgnoreCase("ZombieExplorer") && zombie.isTorchLit()) {
                         game.removePlant(targetPlant);
-                        game.getBoard().getTile(targetPlant.getY(), targetPlant.getX()).setPlant(null);
+                        if (targetTile.getPumpkinPlant() == targetPlant) targetTile.setPumpkinPlant(null);
+                        else targetTile.setPlant(null);
                         game.incrementPlantsLost();
                         game.addGameLogMessage("Explorer Zombie burned plant " + targetPlant.getName() + " at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
                     } else if (zombie.getName().equalsIgnoreCase("ZombieModernAllStar") && zombie.isCharging()) {
@@ -171,6 +196,7 @@ public class ZombieInteractionHandler {
                                 targetPlant.takeDamage(99999);
                                 game.addGameLogMessage("Zombie ate Hypno-shroom and turned to fight for player!");
                             } else if (targetPlant.getName().equalsIgnoreCase("Endurian")) {
+                                targetPlant.triggerAttack(0.8f);
                                 zombie.takeDamage(20, false);
                                 game.addGameLogMessage("Endurian reflected 20 damage back to zombie!");
                             } else if (targetPlant.getName().equalsIgnoreCase("Garlic")) {

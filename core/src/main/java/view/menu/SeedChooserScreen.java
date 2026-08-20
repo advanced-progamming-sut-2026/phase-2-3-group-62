@@ -278,7 +278,7 @@ public class SeedChooserScreen implements Screen {
                     int currentLevel = user != null ? user.getPlantLevels().getOrDefault(plant.getName(), 1) : 1;
                     boolean boosted = isPlantBoosted(plant.getName());
 
-                    PlantSeedCard card = new PlantSeedCard(plant, currentLevel, boosted, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
+                    PlantSeedCard card = new PlantSeedCard(game, plant, currentLevel, boosted, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
                     card.setSize(95, 125);
                     slotStack.add(card);
 
@@ -336,7 +336,7 @@ public class SeedChooserScreen implements Screen {
             int currentLevel = user != null ? user.getPlantLevels().getOrDefault(plant.getName(), 1) : 1;
             boolean boosted = isPlantBoosted(plant.getName());
 
-            PlantSeedCard card = new PlantSeedCard(plant, currentLevel, boosted, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
+            PlantSeedCard card = new PlantSeedCard(game, plant, currentLevel, boosted, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
             attachHoverEffect(card, 1.06f);
 
             card.addListener(new ClickListener() {
@@ -382,7 +382,7 @@ public class SeedChooserScreen implements Screen {
         nameTitle.setColor(Color.YELLOW);
         detailPane.add(nameTitle).padTop(4).center().row();
 
-        PamActor bigAnim = new PamActor(pamPlayer, plant.getPamPath(), "anim_idle", 0.45f);
+        PamActor bigAnim = new PamActor(pamPlayer, plant.getPamPath(), "idle", 0.45f);
         bigAnim.setSize(130, 130);
         detailPane.add(bigAnim).size(130, 130).padTop(2).center().row();
 

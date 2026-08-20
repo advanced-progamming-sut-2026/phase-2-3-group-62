@@ -9,6 +9,7 @@ public class Tile {
     private final int column;
     private TileType type;
     private Plant plant;
+    private Plant pumpkinPlant;
     private Zombie zombie;
     private int graveHealth;
     private int sunReward;
@@ -29,6 +30,7 @@ public class Tile {
         this.row = row;
         this.column = column;
         this.type = TileType.GRASS;
+        this.pumpkinPlant = null;
         this.temporarySeedPacket = null;
         this.seedPacketTimer = 0;
         this.isCrater = false;
@@ -65,6 +67,10 @@ public class Tile {
             this.plant.takeDamage(99999);
             this.plant = null;
         }
+        if (this.pumpkinPlant != null) {
+            this.pumpkinPlant.takeDamage(99999);
+            this.pumpkinPlant = null;
+        }
     }
 
     public boolean isGrave() {
@@ -72,7 +78,7 @@ public class Tile {
     }
 
     public boolean isEmpty() {
-        return plant == null && zombie == null && !isCrater && !isGrave() && !isOnFire();
+        return plant == null && pumpkinPlant == null && zombie == null && !isCrater && !isGrave() && !isOnFire();
     }
 
     public int getRow() {
@@ -97,6 +103,14 @@ public class Tile {
 
     public void setPlant(Plant plant) {
         this.plant = plant;
+    }
+
+    public Plant getPumpkinPlant() {
+        return pumpkinPlant;
+    }
+
+    public void setPumpkinPlant(Plant pumpkinPlant) {
+        this.pumpkinPlant = pumpkinPlant;
     }
 
     public Zombie getZombie() {

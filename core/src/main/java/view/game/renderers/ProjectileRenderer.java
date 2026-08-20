@@ -18,6 +18,7 @@ public class ProjectileRenderer {
     private final PamPlayer pamPlayer;
     private final TextureBank textureBank;
     private final Map<Bullet, Float> smoothPixelX = new HashMap<>();
+    private final Map<Bullet, Float> smoothPixelY = new HashMap<>();
 
     private static class ImpactEffect {
         String pamPath;
@@ -58,20 +59,21 @@ public class ProjectileRenderer {
         if (game == null) return;
 
         smoothPixelX.keySet().removeIf(b -> !game.getBullets().contains(b));
+        smoothPixelY.keySet().removeIf(b -> !game.getBullets().contains(b));
 
         float startX = GameGrid.getGridStartX();
         float startY = GameGrid.getGridStartY();
 
         for (Bullet bullet : new ArrayList<>(game.getBullets())) {
-            int row = bullet.getRow();
             double col = bullet.getColumn();
+            double exactRow = bullet.getExactRow();
 
             float targetPx = startX + ((float) col * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f);
             float currentPx = smoothPixelX.getOrDefault(bullet, targetPx);
             currentPx = MathUtils.lerp(currentPx, targetPx, 0.35f);
             smoothPixelX.put(bullet, currentPx);
 
-            float basePy = startY + ((4 - row) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
+            float basePy = startY + ((4.0f - (float) exactRow) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
 
             Bullet.BulletType type = bullet.getType();
             boolean isLobbed = (type == Bullet.BulletType.LOB || (bullet.getPlantName() != null && (
@@ -82,29 +84,33 @@ public class ProjectileRenderer {
                     bullet.getPlantName().equalsIgnoreCase("Kernel-pult")
             )));
 
-            float py = basePy;
+            float targetPy = basePy;
             if (isLobbed) {
                 double startC = bullet.getStartColumn();
                 double targetC = Math.max(startC + 1.0, bullet.getTargetColumn());
                 float progress = (float) Math.min(1.0, Math.max(0.0, (col - startC) / (targetC - startC)));
                 float arcHeight = 160f * (4f * progress * (1f - progress));
-                py += arcHeight;
+                targetPy += arcHeight;
             }
+
+            float currentPy = smoothPixelY.getOrDefault(bullet, targetPy);
+            currentPy = MathUtils.lerp(currentPy, targetPy, 0.35f);
+            smoothPixelY.put(bullet, currentPy);
 
             String pamPath = getPamPathForBullet(bullet);
             String clipName = getClipNameForBullet(bullet);
 
             try {
-                pamPlayer.draw(batch, pamPath, clipName, stateTime, currentPx, py, true);
+                pamPlayer.draw(batch, pamPath, clipName, stateTime, currentPx, currentPy, true);
             } catch (Exception e1) {
                 try {
-                    pamPlayer.draw(batch, pamPath, "animation", stateTime, currentPx, py, true);
+                    pamPlayer.draw(batch, pamPath, "animation", stateTime, currentPx, currentPy, true);
                 } catch (Exception e2) {
                     try {
-                        pamPlayer.draw(batch, pamPath, "idle", stateTime, currentPx, py, true);
+                        pamPlayer.draw(batch, pamPath, "idle", stateTime, currentPx, currentPy, true);
                     } catch (Exception e3) {
                         try {
-                            pamPlayer.draw(batch, pamPath, "", stateTime, currentPx, py, true);
+                            pamPlayer.draw(batch, pamPath, "", stateTime, currentPx, currentPy, true);
                         } catch (Exception ignored) {}
                     }
                 }
@@ -141,6 +147,18 @@ public class ProjectileRenderer {
 
         String plantName = bullet.getPlantName() != null ? bullet.getPlantName().toLowerCase() : "";
 
+        if (plantName.contains("grapeshot") || plantName.contains("grape")) {
+            return "768/INITIAL/EFFECTS/GRAPESHOT_PROJECTILE/GRAPESHOT_PROJECTILE.PAM";
+        }
+        if (plantName.contains("fume")) {
+            return "768/INITIAL/EFFECTS/FUMESHROOM_BUBBLES/FUMESHROOM_BUBBLES.PAM";
+        }
+        if (plantName.contains("citron")) {
+            return "768/FULL/EFFECTS/CITRON_CITRUS_ORB/CITRON_CITRUS_ORB.PAM";
+        }
+        if (plantName.contains("rotobaga")) {
+            return "768/FULL/EFFECTS/ROTORUTABAGA_PROJECTILE2/ROTORUTABAGA_PROJECTILE2.PAM";
+        }
         if (plantName.contains("winter melon") || plantName.contains("wintermelon")) {
             return "768/FULL/EFFECTS/T_WINTERMELON_PROJECTILE/T_WINTERMELON_PROJECTILE.PAM";
         }
@@ -217,6 +235,9 @@ public class ProjectileRenderer {
     private String getClipNameForBullet(Bullet bullet) {
         if (bullet == null) return "animation";
         String plantName = bullet.getPlantName() != null ? bullet.getPlantName().toLowerCase() : "";
+        if (plantName.contains("fume")) {
+            return "anim_fume";
+        }
         if (plantName.contains("goo") || bullet.getType() == Bullet.BulletType.POISON) {
             return "projectile_t1";
         }
@@ -227,6 +248,9 @@ public class ProjectileRenderer {
         if (bullet == null) return "768/FULL/EFFECTS/REDSTINGER_PROJECTILE_HIT/REDSTINGER_PROJECTILE_HIT.PAM";
         String plantName = bullet.getPlantName() != null ? bullet.getPlantName().toLowerCase() : "";
 
+        if (plantName.contains("fume")) {
+            return null;
+        }
         if (plantName.contains("winter melon") || plantName.contains("wintermelon")) {
             return "768/FULL/EFFECTS/WINTERMELON_EXPLODE/WINTERMELON_EXPLODE.PAM";
         }

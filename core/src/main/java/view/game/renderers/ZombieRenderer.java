@@ -13,6 +13,7 @@ import pvz.libpvz.textures.TextureBank;
 import view.game.GameGrid;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -60,80 +61,85 @@ public class ZombieRenderer {
         dyingZombies.add(new DyingZombie(type, pixelX, pixelY, 1.2f));
     }
 
-    public void render(SpriteBatch batch, Game game, float stateTime, float delta) {
-        if (game == null) return;
+    public void renderRow(SpriteBatch batch, Game game, int row, float stateTime, float delta) {
+        if (game == null || game.getActiveZombies() == null) return;
 
-        if (game.getActiveZombies() != null) {
-            for (Zombie prevZombie : new ArrayList<>(smoothXPositions.keySet())) {
-                if (!game.getActiveZombies().contains(prevZombie)) {
-                    if (!(prevZombie instanceof Zomboss)) {
-                        float px = smoothXPositions.getOrDefault(prevZombie, 0f);
-                        float py = GameGrid.getGridStartY() + ((4 - prevZombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
-                        triggerDeathAnimation(prevZombie, px, py);
-                    }
-                    smoothXPositions.remove(prevZombie);
+        for (Zombie prevZombie : new ArrayList<>(smoothXPositions.keySet())) {
+            if (!game.getActiveZombies().contains(prevZombie)) {
+                if (!(prevZombie instanceof Zomboss)) {
+                    float px = smoothXPositions.getOrDefault(prevZombie, 0f);
+                    float py = GameGrid.getGridStartY() + ((4 - prevZombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
+                    triggerDeathAnimation(prevZombie, px, py);
                 }
-            }
-
-            float startX = GameGrid.getGridStartX();
-            float startY = GameGrid.getGridStartY();
-
-            for (Zombie zombie : game.getActiveZombies()) {
-                if (zombie instanceof Zomboss) {
-                    continue;
-                }
-
-                zombie.updateCustomAnim(delta);
-
-                ZombieType type = ZombieType.fromZombie(zombie);
-                float offsetX = type != null ? type.getOffsetX() : 0f;
-                float offsetY = type != null ? type.getOffsetY() : 0f;
-
-                float targetPixelX = startX + ((float) zombie.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f) + offsetX;
-                float currentPixelX = smoothXPositions.getOrDefault(zombie, targetPixelX);
-
-                currentPixelX = MathUtils.lerp(currentPixelX, targetPixelX, Math.min(delta * 12f, 1f));
-                smoothXPositions.put(zombie, currentPixelX);
-
-                float zy = startY + ((4 - zombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f) + offsetY;
-
-                String pamPath = type != null ? type.getPamPath() : "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM";
-                String clipName = zombie.getCustomAnim() != null ? zombie.getCustomAnim() : (zombie.isEating() ? "eat" : "walk");
-
-                boolean isChilled = zombie.getChilledDuration() > 0;
-                boolean isFullyFrozen = zombie.getFrozenIceHealth() > 0 || zombie.getFrozenDuration() > 0;
-
-                if (isFullyFrozen) {
-                    batch.setColor(0.35f, 0.70f, 1.0f, 1f);
-                } else if (isChilled) {
-                    batch.setColor(0.65f, 0.85f, 1.0f, 1f);
-                }
-
-                float currentAnimTime = isFullyFrozen ? 0f : stateTime;
-                Map<String, Boolean> visibility = buildArmorVisibility(zombie, type);
-
-                try {
-                    pamPlayer.draw(batch, pamPath, clipName, currentAnimTime, currentPixelX, zy, true, visibility);
-                } catch (Exception e) {
-                    try {
-                        pamPlayer.draw(batch, pamPath, "walk", currentAnimTime, currentPixelX, zy, true, visibility);
-                    } catch (Exception ignored) {
-                        try {
-                            pamPlayer.draw(batch, pamPath, null, currentAnimTime, currentPixelX, zy, true, visibility);
-                        } catch (Exception ignored2) {}
-                    }
-                }
-
-                batch.setColor(Color.WHITE);
-
-                if (isFullyFrozen && frozenIceBlockRegion != null) {
-                    float blockW = 135f;
-                    float blockH = 200f;
-                    batch.draw(frozenIceBlockRegion, currentPixelX - blockW / 2f, zy - 40f, blockW, blockH);
-                }
+                smoothXPositions.remove(prevZombie);
             }
         }
 
+        float startX = GameGrid.getGridStartX();
+        float startY = GameGrid.getGridStartY();
+
+        List<Zombie> rowZombies = new ArrayList<>();
+        for (Zombie z : game.getActiveZombies()) {
+            if (!(z instanceof Zomboss) && z.getY() == row) {
+                rowZombies.add(z);
+            }
+        }
+
+        rowZombies.sort(Comparator.comparingDouble(Zombie::getX).reversed());
+
+        for (Zombie zombie : rowZombies) {
+            zombie.updateCustomAnim(delta);
+
+            ZombieType type = ZombieType.fromZombie(zombie);
+            float offsetX = type != null ? type.getOffsetX() : 0f;
+            float offsetY = type != null ? type.getOffsetY() : 0f;
+
+            float targetPixelX = startX + ((float) zombie.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f) + offsetX;
+            float currentPixelX = smoothXPositions.getOrDefault(zombie, targetPixelX);
+
+            currentPixelX = MathUtils.lerp(currentPixelX, targetPixelX, Math.min(delta * 12f, 1f));
+            smoothXPositions.put(zombie, currentPixelX);
+
+            float zy = startY + ((4 - zombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f) + offsetY;
+
+            String pamPath = type != null ? type.getPamPath() : "768/FULL/ZOMBIE/ZOMBIE_DARK_BASIC/ZOMBIE_DARK_BASIC.PAM";
+            String clipName = zombie.getCustomAnim() != null ? zombie.getCustomAnim() : (zombie.isEating() ? "eat" : "walk");
+
+            boolean isChilled = zombie.getChilledDuration() > 0;
+            boolean isFullyFrozen = zombie.getFrozenIceHealth() > 0 || zombie.getFrozenDuration() > 0;
+
+            if (isFullyFrozen) {
+                batch.setColor(0.35f, 0.70f, 1.0f, 1f);
+            } else if (isChilled) {
+                batch.setColor(0.65f, 0.85f, 1.0f, 1f);
+            }
+
+            float currentAnimTime = isFullyFrozen ? 0f : stateTime;
+            Map<String, Boolean> visibility = buildArmorVisibility(zombie, type);
+
+            try {
+                pamPlayer.draw(batch, pamPath, clipName, currentAnimTime, currentPixelX, zy, true, visibility);
+            } catch (Exception e) {
+                try {
+                    pamPlayer.draw(batch, pamPath, "walk", currentAnimTime, currentPixelX, zy, true, visibility);
+                } catch (Exception ignored) {
+                    try {
+                        pamPlayer.draw(batch, pamPath, null, currentAnimTime, currentPixelX, zy, true, visibility);
+                    } catch (Exception ignored2) {}
+                }
+            }
+
+            batch.setColor(Color.WHITE);
+
+            if (isFullyFrozen && frozenIceBlockRegion != null) {
+                float blockW = 135f;
+                float blockH = 200f;
+                batch.draw(frozenIceBlockRegion, currentPixelX - blockW / 2f, zy - 40f, blockW, blockH);
+            }
+        }
+    }
+
+    public void renderDyingZombies(SpriteBatch batch, float delta) {
         Iterator<DyingZombie> it = dyingZombies.iterator();
         while (it.hasNext()) {
             DyingZombie dz = it.next();

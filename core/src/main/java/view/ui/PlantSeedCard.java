@@ -5,13 +5,19 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Scaling;
+import main.Maini;
+import model.entities.PlantType;
 import model.entities.plant.Plant;
 import pvz.libpvz.pam.PamPlayer;
 
@@ -31,7 +37,7 @@ public class PlantSeedCard extends Table {
     private static Texture borderTexture;
     private static Texture badgeBgTexture;
 
-    public PlantSeedCard(Plant plant, int level, boolean boosted, PamPlayer pamPlayer, TextureRegion cardFace, TextureRegion badgeRegion, Skin skin) {
+    public PlantSeedCard(Maini game, Plant plant, int level, boolean boosted, PamPlayer pamPlayer, TextureRegion cardFace, TextureRegion badgeRegion, Skin skin) {
         this.plant = plant;
         this.maxCooldown = plant.getRecharge() > 0 ? (float) plant.getRecharge() : 5f;
 
@@ -88,15 +94,37 @@ public class PlantSeedCard extends Table {
             stack.add(boostIndicator);
         }
 
-        PamActor anim = new PamActor(pamPlayer, plant.getPamPath(), null, 0.42f) {
-            @Override
-            public void act(float delta) {
-                super.act(0f);
+        PlantType pType = PlantType.fromName(plant.getName());
+        Actor visualActor = null;
+
+        if (pType != null && pType.getIconRegionName() != null) {
+            TextureRegion iconReg = game.getTextureBank().region(pType.getIconRegionName());
+            if (iconReg != null) {
+                Image iconImg = new Image(iconReg);
+                iconImg.setScaling(Scaling.fit);
+                iconImg.setAlign(Align.center);
+                visualActor = iconImg;
             }
-        };
-        anim.setSize(100, 94);
-        anim.setTouchable(Touchable.disabled);
-        content.add(anim).size(100, 94).padTop(2).center().row();
+        }
+
+        if (visualActor == null) {
+            PamActor anim = new PamActor(pamPlayer, plant.getPamPath(), null, 0.22f) {
+                @Override
+                public void act(float delta) {
+                    super.act(0f);
+                }
+            };
+            anim.act(1.4f);
+            visualActor = anim;
+        }
+
+        visualActor.setTouchable(Touchable.disabled);
+
+        Container<Actor> iconContainer = new Container<>(visualActor);
+        iconContainer.size(72, 72);
+        iconContainer.fill();
+
+        content.add(iconContainer).size(72, 72).padTop(8).center().row();
 
         Table bottomRow = new Table();
         bottomRow.setFillParent(false);
@@ -127,7 +155,7 @@ public class PlantSeedCard extends Table {
 
         bottomRow.add(lvlBadge).height(28).left().padLeft(3);
         bottomRow.add(costBadge).height(28).expandX().right().padRight(3);
-        content.add(bottomRow).fillX().padTop(2).padBottom(3);
+        content.add(bottomRow).fillX().padTop(4).padBottom(3);
 
         stack.add(content);
 
@@ -141,6 +169,10 @@ public class PlantSeedCard extends Table {
         stack.add(labelTable);
 
         add(stack).size(106, 134);
+    }
+
+    public PlantSeedCard(Plant plant, int level, boolean boosted, PamPlayer pamPlayer, TextureRegion cardFace, TextureRegion badgeRegion, Skin skin) {
+        this(null, plant, level, boosted, pamPlayer, cardFace, badgeRegion, skin);
     }
 
     @Override

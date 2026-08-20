@@ -46,9 +46,9 @@ public class Level {
                 seedProtectionPositions.add(new int[]{2, 3});
                 break;
             case TIMED_WAR:
-                timeLimitTicks = 150;
+                timeLimitTicks = 600;
                 targetZombiesToKill = 5;
-                targetSunsToProduce = 100;
+                targetSunsToProduce = 500;
                 break;
             case NIGHT_OPS:
                 initialSunAmount = 50;

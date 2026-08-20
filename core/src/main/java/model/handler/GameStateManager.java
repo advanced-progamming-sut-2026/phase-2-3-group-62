@@ -26,7 +26,7 @@ public class GameStateManager {
         }
 
         if (specialType == model.enums.SpecialLevelType.TIMED_WAR) {
-            if (game.getZombiesKilledInLevel() >= game.getLevel().getTargetZombiesToKill() || game.getSunCount() >= game.getLevel().getTargetSunsToProduce()) {
+            if (game.getZombiesKilledInLevel() >= game.getLevel().getTargetZombiesToKill() && game.getSunCount() >= game.getLevel().getTargetSunsToProduce()) {
                 game.setWon(true);
                 game.stop();
                 game.getGameLogMessages().add("Dear humanz, zis is not done yet; we will come back to eat your brainz, humanz.");
