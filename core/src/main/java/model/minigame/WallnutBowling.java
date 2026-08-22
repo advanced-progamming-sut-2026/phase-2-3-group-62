@@ -4,6 +4,9 @@ import model.Game;
 import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
+import view.game.GameGrid;
+import view.game.renderers.ProjectileRenderer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -21,7 +24,7 @@ public class WallnutBowling extends MiniGame {
     public WallnutBowling() {
         super("WallnutBowling");
         this.deadlineColumn = 3;
-        this.redLineX = 3;
+        this.redLineX = 2;
         this.stageLevel = 1;
         this.maxStageLevel = 3;
         this.zombiesDefeated = 0;
@@ -91,7 +94,7 @@ public class WallnutBowling extends MiniGame {
             String type = zombieTypes.get(rand.nextInt(zombieTypes.size()));
             int lane = rand.nextInt(game.getBoard().getRows());
             int spawnCol = game.getBoard().getColumns() - 1;
-            Zombie z = model.entities.zombie.factory.ZombieFactory.createZombieAtColumn(type, lane, spawnCol);
+            Zombie z = model.entities.zombie.factory.ZombieFactory.createZombieAtColumn(type, lane, spawnCol, game.getDifficultyLevel());
             if (z != null) {
                 game.addZombie(z);
                 game.getBoard().getTile(lane, spawnCol).setZombie(z);
@@ -103,21 +106,23 @@ public class WallnutBowling extends MiniGame {
     }
 
     public void updateMiniGame(Game game) {
-        if (game.getTickCount() == 1 || game.getTickCount() % 120 == 0) {
+        if (game == null) return;
+
+        if ((game.getTickCount() == 1 || game.getTickCount() % 50 == 0) && game.getConveyorBeltPlants().size() < 6) {
             Random rand = new Random();
             int roll = rand.nextInt(100);
             String walnutType;
             if (roll < 70) {
-                walnutType = "Bowling Wallnut";
+                walnutType = "Wall-nut";
             } else if (roll < 90) {
-                walnutType = "Explode O' Nut";
+                walnutType = "Explode-o-nut";
             } else {
-                walnutType = "Giant Wallnut";
+                walnutType = "Tall-nut";
             }
             game.getConveyorBeltPlants().add(walnutType);
         }
 
-        if (game.getTickCount() % 200 == 0 && waveCount < maxWaves && game.getActiveZombies().size() < 5) {
+        if (game.getTickCount() % 150 == 0 && waveCount < maxWaves && game.getActiveZombies().size() < 6) {
             spawnZombieWave(game);
         }
 
@@ -129,7 +134,7 @@ public class WallnutBowling extends MiniGame {
                 waveCount = 0;
                 zombiesDefeated = 0;
                 for (Zombie z : new ArrayList<>(game.getActiveZombies())) {
-                    game.getBoard().getTile(z.getY(), (int) z.getX()).setZombie(null);
+                    game.getBoard().getTile(z.getY(), (int) Math.round(z.getX())).setZombie(null);
                     game.removeZombie(z);
                 }
                 game.getGameLogMessages().add("WallnutBowling: Stage " + (stageLevel - 1) + " complete! Advanced to Stage " + stageLevel);
@@ -145,7 +150,7 @@ public class WallnutBowling extends MiniGame {
 
         for (Plant ball : new ArrayList<>(game.getActivePlants())) {
             if (ball.isBowlingBall()) {
-                if (game.getTickCount() % 5 == 0) {
+                if (game.getTickCount() % 2 == 0) {
                     Tile oldTile = game.getBoard().getTile(ball.getY(), ball.getX());
                     if (oldTile != null && oldTile.getPlant() == ball) {
                         oldTile.setPlant(null);
@@ -163,7 +168,7 @@ public class WallnutBowling extends MiniGame {
                     }
 
                     if (ball.getX() >= game.getBoard().getColumns()) {
-                        game.getActivePlants().remove(ball);
+                        game.removePlant(ball);
                         continue;
                     }
 
@@ -181,7 +186,11 @@ public class WallnutBowling extends MiniGame {
                     }
 
                     if (target != null) {
-                        if (ball.getName().equalsIgnoreCase("Giant Wallnut")) {
+                        float hitPx = GameGrid.getGridStartX() + (ball.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f);
+                        float hitPy = GameGrid.getGridStartY() + ((4 - ball.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
+
+                        if (ball.getName().equalsIgnoreCase("Tall-nut") || ball.getName().equalsIgnoreCase("Giant Wallnut")) {
+                            ProjectileRenderer.triggerStaticImpact("768/FULL/EFFECTS/T_BANANA_EXPLOSION/T_BANANA_EXPLOSION.PAM", hitPx, hitPy);
                             target.takeDamage(target.getMaxHealth(), false);
                             if (!target.isAlive()) {
                                 zombiesDefeated++;
@@ -189,7 +198,9 @@ public class WallnutBowling extends MiniGame {
                                 game.getActiveZombies().remove(target);
                                 game.getBoard().getTile(target.getY(), (int) Math.round(target.getX())).setZombie(null);
                             }
-                        } else if (ball.getName().equalsIgnoreCase("Explode O' Nut") || ball.getName().contains("Explode")) {
+                        } else if (ball.getName().equalsIgnoreCase("Explode-o-nut") || ball.getName().contains("Explode")) {
+                            ProjectileRenderer.triggerStaticImpact("768/INITIAL/EFFECTS/MELON_EXPLODE/MELON_EXPLODE.PAM", hitPx, hitPy);
+
                             List<Zombie> blastTargets = new ArrayList<>();
                             for (Zombie az : game.getActiveZombies()) {
                                 if (Math.abs(az.getY() - ball.getY()) <= 1 && Math.abs(az.getX() - ball.getX()) <= 1.5) {
@@ -205,10 +216,11 @@ public class WallnutBowling extends MiniGame {
                                     game.getBoard().getTile(bt.getY(), (int) Math.round(bt.getX())).setZombie(null);
                                 }
                             }
-                            game.getActivePlants().remove(ball);
+                            game.removePlant(ball);
                             if (newTile != null) newTile.setPlant(null);
                         } else {
-                            target.takeDamage(200, false);
+                            ProjectileRenderer.triggerStaticImpact("768/FULL/EFFECTS/T_BANANA_EXPLOSION/T_BANANA_EXPLOSION.PAM", hitPx, hitPy);
+                            target.takeDamage(300, false);
                             ball.incrementHitCount();
                             if (!target.isAlive()) {
                                 zombiesDefeated++;
@@ -224,6 +236,11 @@ public class WallnutBowling extends MiniGame {
                                 ball.setDy(dy);
                             } else {
                                 ball.setDy(-ball.getDy());
+                            }
+
+                            if (ball.getHitCount() >= 5) {
+                                game.removePlant(ball);
+                                if (newTile != null) newTile.setPlant(null);
                             }
                         }
                     }

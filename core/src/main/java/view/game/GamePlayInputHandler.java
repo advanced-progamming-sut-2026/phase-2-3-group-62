@@ -14,6 +14,7 @@ import model.board.Tile;
 import model.entities.plant.Plant;
 import model.enums.SpecialLevelType;
 import model.handler.PlantAbilityHandler;
+import model.minigame.Vasebreaker;
 
 import java.util.ArrayList;
 
@@ -49,6 +50,30 @@ public class GamePlayInputHandler extends InputListener {
         if (button == 1) {
             screen.setToolMode(GamePlayScreen.ToolMode.NONE);
             return true;
+        }
+
+        int hoveredCol = screen.getHoveredCol();
+        int hoveredRow = screen.getHoveredRow();
+
+        if (modelGame != null && modelGame.getActiveMiniGame() instanceof Vasebreaker && hoveredCol != -1 && hoveredRow != -1) {
+            Vasebreaker vb = (Vasebreaker) modelGame.getActiveMiniGame();
+            Tile t = modelGame.getBoard().getTile(hoveredRow, hoveredCol);
+
+            if (t != null && t.getTemporarySeedPacket() != null) {
+                String res = gameController.pickupPacket(hoveredCol, hoveredRow);
+                if (res != null) {
+                    screen.enqueueLog(res, res.startsWith("Error"));
+                }
+                return true;
+            }
+
+            if (vb.hasVase(hoveredRow, hoveredCol) && !vb.isVaseBroken(hoveredRow, hoveredCol)) {
+                String res = gameController.smashVase(hoveredCol, hoveredRow);
+                if (res != null) {
+                    screen.enqueueLog(res, res.startsWith("Error"));
+                }
+                return true;
+            }
         }
 
         if (modelGame != null && screen.getCurrentToolMode() == GamePlayScreen.ToolMode.NONE) {
@@ -105,9 +130,6 @@ public class GamePlayInputHandler extends InputListener {
                 }
             }
         }
-
-        int hoveredCol = screen.getHoveredCol();
-        int hoveredRow = screen.getHoveredRow();
 
         if (hoveredCol != -1 && hoveredRow != -1 && modelGame != null) {
             if (screen.getCurrentToolMode() == GamePlayScreen.ToolMode.PLANTING && screen.getSelectedPlantToPlant() != null) {

@@ -24,6 +24,7 @@ import model.entities.zombie.boss.Zomboss;
 import model.enums.SpecialLevelType;
 import model.enums.TileType;
 import model.handler.ZombossAbilityHandler;
+import model.minigame.Vasebreaker;
 import model.season.AncientEgypt;
 import model.season.FrostbiteCaves;
 import model.season.Season;
@@ -76,6 +77,7 @@ public class GamePlayScreen implements Screen {
     private ZombieRenderer zombieRenderer;
     private ProjectileRenderer projectileRenderer;
     private ZombossRenderer zombossRenderer;
+    private VaseRenderer vaseRenderer;
     private final ZombossAbilityHandler zombossAbilityHandler = new ZombossAbilityHandler();
 
     private GamePlayHud hud;
@@ -180,13 +182,18 @@ public class GamePlayScreen implements Screen {
         zombieRenderer = new ZombieRenderer(pamPlayer, game.getTextureBank());
         projectileRenderer = new ProjectileRenderer(game.getTextureBank(), pamPlayer);
         zombossRenderer = new ZombossRenderer(pamPlayer);
+        vaseRenderer = new VaseRenderer();
 
         loadSelectedPlants();
 
         hud = new GamePlayHud(this, stage, game.getSkin(), pamPlayer, game, gameController);
         stage.addListener(new GamePlayInputHandler(this, game, gameController));
 
-        enqueueLog("Wave 1 started!", false);
+        if (gameController != null && gameController.getGame() != null && gameController.getGame().getActiveMiniGame() instanceof Vasebreaker) {
+            enqueueLog("Vasebreaker Started! Smash vases to find plants or zombies.", false);
+        } else {
+            enqueueLog("Wave 1 started!", false);
+        }
     }
 
     public void setToolMode(ToolMode mode) {
@@ -276,6 +283,9 @@ public class GamePlayScreen implements Screen {
         }
         if (current != null && current.getLevel() != null) {
             newModelGame.getLevel().setSpecialLevelType(current.getLevel().getSpecialLevelType());
+        }
+        if (current != null && current.getActiveMiniGame() != null) {
+            newModelGame.setActiveMiniGame(new Vasebreaker());
         }
         newModelGame.start();
         newModelGame.setupSpecialLevelFeatures();
@@ -556,8 +566,6 @@ public class GamePlayScreen implements Screen {
 
         lawnRenderer.renderLawnElements(batch, gameController.getGame(), stateTime);
 
-        // ترتیب رندر بر اساس ردیف: از ردیف 0 (بالا) به ردیف 4 (پایین)
-        // تا هر المانی که در ردیف پایین‌تر قرار دارد روی بالایی‌ها بیفتد
         if (modelGame != null) {
             for (int r = 0; r < GameGrid.ROWS; r++) {
                 plantRenderer.renderRow(batch, modelGame, r, stateTime, effectiveDelta);
@@ -565,6 +573,7 @@ public class GamePlayScreen implements Screen {
             }
             zombossRenderer.render(batch, modelGame, stateTime, effectiveDelta);
             zombieRenderer.renderDyingZombies(batch, effectiveDelta);
+            vaseRenderer.render(batch, pamPlayer, game.getTextureBank(), modelGame, effectiveDelta);
         }
 
         projectileRenderer.render(batch, gameController.getGame(), stateTime);

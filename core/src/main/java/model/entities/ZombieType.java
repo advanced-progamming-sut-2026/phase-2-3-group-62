@@ -29,7 +29,12 @@ public enum ZombieType {
     ALL_STAR("ZombieModernAllStar", "All-Star Zombie", "768/FULL/ZOMBIE/ZOMBIE_MODERN_ALLSTAR/ZOMBIE_MODERN_ALLSTAR.PAM", 100, 1100, 0.160, 1000, "none", 0, false, 0.28f, 0f, 0f),
     ARCADE("ZombieArcade", "Arcade Zombie", "768/FULL/ZOMBIE/ZOMBIE_80S_ARCADE/ZOMBIE_80S_ARCADE.PAM", 100, 490, 0.190, 600, "none", 0, false, 0.28f, 0f, 0f),
     PROSPECTOR("ZombieProspector", "Prospector Zombie", "768/FULL/ZOMBIE/ZOMBIE_PROSPECTOR/ZOMBIE_PROSPECTOR.PAM", 100, 190, 0.160, 200, "none", 0, false, 0.28f, 0f, 0f),
-    NEWSPAPER("ZombieNewspaper", "Newspaper Zombie", "768/FULL/ZOMBIE/ZOMBIE_MODERN_NEWSPAPER/ZOMBIE_MODERN_NEWSPAPER.PAM", 200, 460, 0.220, 700, "Newspaper", 800, false, 0.28f, 0f, 0f);
+    NEWSPAPER("ZombieNewspaper", "Newspaper Zombie", "768/FULL/ZOMBIE/ZOMBIE_MODERN_NEWSPAPER/ZOMBIE_MODERN_NEWSPAPER.PAM", 200, 460, 0.220, 700, "Newspaper", 800, false, 0.28f, 0f, 0f),
+
+    ZOMBOTANY_PEASHOOTER("PeashooterZombie", "Peashooter Zombie", "768/FULL/ZOMBIE/ZOMBIE_STPATRICKS_BASIC/ZOMBIE_STPATRICKS_BASIC.PAM", 100, 200, 0.185, 200, "none", 0, false, 0.28f, 0f, 0f),
+    ZOMBOTANY_WALLNUT("WallnutZombie", "Wall-nut Zombie", "768/FULL/ZOMBIE/ZOMBIE_LOSTCITY_PACK/ZOMBIE_LOSTCITY_PACK.PAM", 100, 1200, 0.080, 400, "Nut", 0, false, 0.28f, 0f, 0f),
+    ZOMBOTANY_JALAPENO("JalapenoZombie", "Jalapeno Zombie", "768/FULL/ZOMBIE/ZOMBIE_PIRATE_BASIC_BRICK/ZOMBIE_PIRATE_BASIC_BRICK.PAM", 100, 250, 0.200, 300, "none", 0, false, 0.28f, 0f, 0f),
+    ZOMBOTANY_SQUASH("SquashZombie", "Squash Zombie", "768/FULL/ZOMBIE/ZOMBIE_ROMAN_IMP/ZOMBIE_ROMAN_IMP.PAM", 100, 200, 0.380, 350, "none", 0, false, 0.24f, 0f, 0f);
 
     private final String id;
     private final String displayName;
@@ -67,6 +72,12 @@ public enum ZombieType {
     }
 
     public static ZombieType fromIdAndArmor(String id, String armorType) {
+        String clean = id != null ? id.replaceAll("[\\s_-]", "").toLowerCase() : "";
+        if (clean.contains("peashooterzombie")) return ZOMBOTANY_PEASHOOTER;
+        if (clean.contains("wallnutzombie")) return ZOMBOTANY_WALLNUT;
+        if (clean.contains("jalapenozombie")) return ZOMBOTANY_JALAPENO;
+        if (clean.contains("squashzombie")) return ZOMBOTANY_SQUASH;
+
         String aClean = armorType != null ? armorType.toLowerCase() : "";
         if (aClean.contains("cone")) return CONE_HEAD;
         if (aClean.contains("bucket")) return BUCKET_HEAD;
@@ -80,6 +91,11 @@ public enum ZombieType {
     public static ZombieType fromId(String id) {
         if (id == null) return DEFAULT;
         String clean = id.replaceAll("[\\s_-]", "").toLowerCase();
+
+        if (clean.contains("peashooterzombie")) return ZOMBOTANY_PEASHOOTER;
+        if (clean.contains("wallnutzombie")) return ZOMBOTANY_WALLNUT;
+        if (clean.contains("jalapenozombie")) return ZOMBOTANY_JALAPENO;
+        if (clean.contains("squashzombie")) return ZOMBOTANY_SQUASH;
 
         if (clean.contains("armor1") || clean.contains("cone")) return CONE_HEAD;
         if (clean.contains("armor2") || clean.contains("bucket")) return BUCKET_HEAD;

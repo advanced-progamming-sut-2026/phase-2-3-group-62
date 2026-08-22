@@ -1,9 +1,14 @@
 package model.minigame;
 
 import model.Game;
+import model.board.Bullet;
+import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
+import model.entities.zombie.ZombieEffect;
 import model.entities.zombie.factory.ZombieFactory;
+import view.game.GameGrid;
+import view.game.renderers.ProjectileRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +56,8 @@ public class Zombotany extends MiniGame {
     public void updateMiniGame(Game game) {
         if (game.getTickCount() == 1) {
             for (Zombie z : new ArrayList<>(game.getActiveZombies())) {
-                game.getBoard().getTile(z.getY(), (int) z.getX()).setZombie(null);
+                Tile t = game.getBoard().getTile(z.getY(), (int) Math.round(z.getX()));
+                if (t != null) t.setZombie(null);
                 game.removeZombie(z);
             }
             spawnHybridWave(game);
@@ -66,7 +72,8 @@ public class Zombotany extends MiniGame {
                 zombiesDefeated = 0;
                 game.getGameLogMessages().add("Zombotany: Stage " + (stageDifficulty - 1) + " complete! Moving to Stage " + stageDifficulty);
                 for (Zombie z : new ArrayList<>(game.getActiveZombies())) {
-                    game.getBoard().getTile(z.getY(), (int) z.getX()).setZombie(null);
+                    Tile t = game.getBoard().getTile(z.getY(), (int) Math.round(z.getX()));
+                    if (t != null) t.setZombie(null);
                     game.removeZombie(z);
                 }
                 spawnHybridWave(game);
@@ -80,48 +87,74 @@ public class Zombotany extends MiniGame {
         }
 
         for (Zombie zombie : new ArrayList<>(game.getActiveZombies())) {
-            if (zombie.getName().equalsIgnoreCase("PeashooterZombie") && game.getTickCount() % 15 == 0) {
-                for (int col = (int) zombie.getX(); col >= 0; col--) {
-                    Plant p = game.getPlantAt(col, zombie.getY());
-                    if (p != null && p.isAlive()) {
-                        p.takeDamage(20);
-                        game.getScoreGame().onDamageTaken(20);
-                        game.getGameLogMessages().add("Zombotany: PeashooterZombie shot a pea and hit " + p.getName() + " at (" + col + ", " + zombie.getY() + ")");
-                        if (!p.isAlive()) {
-                            game.getActivePlants().remove(p);
-                            game.getBoard().getTile(p.getY(), p.getX()).setPlant(null);
-                        }
+            String zName = zombie.getName().toLowerCase();
+
+            if (zName.contains("peashooter") && game.getTickCount() % 25 == 0) {
+                boolean hasPlantAhead = false;
+                for (Plant p : game.getActivePlants()) {
+                    if (p.getY() == zombie.getY() && p.getX() < zombie.getX()) {
+                        hasPlantAhead = true;
                         break;
                     }
                 }
+                if (hasPlantAhead) {
+                    Bullet pea = new Bullet(20, zombie.getY(), zombie.getX() - 0.2, Bullet.BulletType.NORMAL, false, false, 0);
+                    pea.setDx(-0.35);
+                    pea.setPlantName("ZombiePea");
+                    game.addBullet(pea);
+                    game.getGameLogMessages().add("Zombotany: Peashooter Zombie fired a pea down row " + zombie.getY() + "!");
+                }
             }
 
-            if (zombie.getName().equalsIgnoreCase("JalapenoZombie")) {
+            if (zName.contains("jalapeno")) {
                 zombie.incrementJalapenoTimer();
                 if (zombie.getZombotanyJalapenoTimer() >= 100) {
-                    game.getGameLogMessages().add("Zombotany: JalapenoZombie exploded and incinerated lane " + zombie.getY() + "!");
+                    float fx = GameGrid.getGridStartX() + (GameGrid.GRID_TOTAL_WIDTH / 2f);
+                    float fy = GameGrid.getGridStartY() + ((4 - zombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
+                    ProjectileRenderer.triggerStaticImpact("768/INITIAL/EFFECTS/JALAPENO_FIRE/JALAPENO_FIRE.PAM", fx, fy);
+
                     List<Plant> toBurn = new ArrayList<>();
                     for (Plant p : game.getActivePlants()) {
-                        if (p.getY() == zombie.getY()) toBurn.add(p);
+                        if (p.getY() == zombie.getY()) {
+                            toBurn.add(p);
+                        }
                     }
-                    game.getActivePlants().removeAll(toBurn);
                     for (Plant bp : toBurn) {
-                        game.getBoard().getTile(bp.getY(), bp.getX()).setPlant(null);
+                        Tile t = game.getBoard().getTile(bp.getY(), bp.getX());
+                        if (t != null) t.setPlant(null);
+                        game.removePlant(bp);
                     }
-                    game.getActiveZombies().remove(zombie);
-                    game.getBoard().getTile(zombie.getY(), (int) zombie.getX()).setZombie(null);
+
+                    game.getGameLogMessages().add("Zombotany: Jalapeno Zombie detonated and incinerated row " + zombie.getY() + "!");
+                    Tile zTile = game.getBoard().getTile(zombie.getY(), (int) Math.round(zombie.getX()));
+                    if (zTile != null) zTile.setZombie(null);
+                    game.removeZombie(zombie);
                     continue;
                 }
             }
 
-            if (!zombie.hasEffect(model.entities.zombie.ZombieEffect.FROZEN)) {
-                Plant targetPlant = game.getPlantAt((int) zombie.getX(), zombie.getY());
-                if (zombie.getName().equalsIgnoreCase("SquashZombie") && targetPlant != null) {
-                    game.getGameLogMessages().add("Zombotany: SquashZombie squashed " + targetPlant.getName() + " at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
-                    game.getActivePlants().remove(targetPlant);
-                    game.getBoard().getTile(targetPlant.getY(), targetPlant.getX()).setPlant(null);
-                    game.getActiveZombies().remove(zombie);
-                    game.getBoard().getTile(zombie.getY(), (int) zombie.getX()).setZombie(null);
+            if (zName.contains("squash") && !zombie.hasEffect(ZombieEffect.FROZEN)) {
+                Plant targetPlant = null;
+                for (Plant p : game.getActivePlants()) {
+                    if (p.getY() == zombie.getY() && Math.abs(p.getX() - zombie.getX()) <= 0.45) {
+                        targetPlant = p;
+                        break;
+                    }
+                }
+
+                if (targetPlant != null) {
+                    float hitPx = GameGrid.getGridStartX() + (targetPlant.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f);
+                    float hitPy = GameGrid.getGridStartY() + ((4 - targetPlant.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
+                    ProjectileRenderer.triggerStaticImpact("768/INITIAL/EFFECTS/MELON_EXPLODE/MELON_EXPLODE.PAM", hitPx, hitPy);
+
+                    game.getGameLogMessages().add("Zombotany: Squash Zombie squashed " + targetPlant.getName() + " at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
+                    Tile pTile = game.getBoard().getTile(targetPlant.getY(), targetPlant.getX());
+                    if (pTile != null) pTile.setPlant(null);
+                    game.removePlant(targetPlant);
+
+                    Tile zTile = game.getBoard().getTile(zombie.getY(), (int) Math.round(zombie.getX()));
+                    if (zTile != null) zTile.setZombie(null);
+                    game.removeZombie(zombie);
                     continue;
                 }
             }
@@ -138,7 +171,8 @@ public class Zombotany extends MiniGame {
         }
         for (Zombie z : toRemove) {
             game.getActiveZombies().remove(z);
-            game.getBoard().getTile(z.getY(), (int) z.getX()).setZombie(null);
+            Tile t = game.getBoard().getTile(z.getY(), (int) Math.round(z.getX()));
+            if (t != null) t.setZombie(null);
         }
 
         if (game.getTickCount() % 150 == 0 && game.getActiveZombies().size() < 5) {
@@ -168,32 +202,26 @@ public class Zombotany extends MiniGame {
             Zombie z = ZombieFactory.createZombieAtColumn(type, lane, spawnCol);
             if (z == null) {
                 int hp = 200;
-                double speed = 0.5;
+                double speed = 0.185;
                 int damage = 20;
                 if (type.equalsIgnoreCase("WallnutZombie")) {
-                    hp = 600;
-                    speed = 0.2;
+                    hp = 1200;
+                    speed = 0.08;
                 } else if (type.equalsIgnoreCase("SquashZombie")) {
-                    speed = 2.0;
+                    speed = 0.38;
                     damage = 50;
                 } else if (type.equalsIgnoreCase("JalapenoZombie")) {
-                    hp = 150;
-                    speed = 0.6;
+                    hp = 250;
+                    speed = 0.20;
                 }
                 z = new Zombie(type, hp, speed, damage);
                 z.setX(spawnCol);
                 z.setY(lane);
             }
 
-            if (stageDifficulty >= 2) {
-
-            }
-            if (stageDifficulty >= 3) {
-
-            }
-
             game.addZombie(z);
-            game.getBoard().getTile(lane, spawnCol).setZombie(z);
+            Tile t = game.getBoard().getTile(lane, spawnCol);
+            if (t != null) t.setZombie(z);
         }
         game.getGameLogMessages().add("Zombotany: Hybrid zombie wave spawned!");
     }

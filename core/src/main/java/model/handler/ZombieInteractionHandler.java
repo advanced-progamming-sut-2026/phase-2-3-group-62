@@ -7,6 +7,7 @@ import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
 import model.entities.zombie.ZombieEffect;
 import model.entities.zombie.boss.Zomboss;
+import model.minigame.Beghoul;
 import model.minigame.IZombie;
 import model.minigame.WallnutBowling;
 
@@ -149,18 +150,14 @@ public class ZombieInteractionHandler {
                 if (targetPlant != null && zombieX - targetPlant.getX() <= 1.05) {
                     zombie.setEating(true);
                     if (zombie.isBarrelRoller() && !zombie.isBarrelDestroyed()) {
-                        game.removePlant(targetPlant);
-                        if (targetTile.getPumpkinPlant() == targetPlant) targetTile.setPumpkinPlant(null);
-                        else targetTile.setPlant(null);
+                        handlePlantEaten(game, targetPlant, targetTile);
                         game.incrementPlantsLost();
                         game.addGameLogMessage("Barrel Roller crushed " + targetPlant.getName() + " at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
                         continue;
                     }
 
                     if (zombie.isTroglobite() && !zombie.isIceBlockDestroyed()) {
-                        game.removePlant(targetPlant);
-                        if (targetTile.getPumpkinPlant() == targetPlant) targetTile.setPumpkinPlant(null);
-                        else targetTile.setPlant(null);
+                        handlePlantEaten(game, targetPlant, targetTile);
                         game.incrementPlantsLost();
                         game.addGameLogMessage("Troglobite crushed " + targetPlant.getName() + " with ice block at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
                         continue;
@@ -173,16 +170,14 @@ public class ZombieInteractionHandler {
                     }
 
                     if (zombie.getName().equalsIgnoreCase("ZombieExplorer") && zombie.isTorchLit()) {
-                        game.removePlant(targetPlant);
-                        if (targetTile.getPumpkinPlant() == targetPlant) targetTile.setPumpkinPlant(null);
-                        else targetTile.setPlant(null);
+                        handlePlantEaten(game, targetPlant, targetTile);
                         game.incrementPlantsLost();
                         game.addGameLogMessage("Explorer Zombie burned plant " + targetPlant.getName() + " at (" + targetPlant.getX() + ", " + targetPlant.getY() + ")!");
                     } else if (zombie.getName().equalsIgnoreCase("ZombieModernAllStar") && zombie.isCharging()) {
                         targetPlant.takeDamage(1500);
                         zombie.setCharging(false);
                         game.addGameLogMessage("All-Star Zombie tackled plant " + targetPlant.getName() + "!");
-                        game.checkPlantDeath(targetPlant);
+                        checkAndHandlePlantDeath(game, targetPlant, targetTile);
                     } else if (!zombie.getName().equalsIgnoreCase("ZombieWizard")) {
                         if (game.getTickCount() % 10 == 0) {
                             targetPlant.takeDamage(zombie.getDamage());
@@ -206,7 +201,7 @@ public class ZombieInteractionHandler {
                                     game.addGameLogMessage("Garlic redirected zombie to lane " + newY + "!");
                                 }
                             }
-                            game.checkPlantDeath(targetPlant);
+                            checkAndHandlePlantDeath(game, targetPlant, targetTile);
                         }
                     }
                 } else {
@@ -288,6 +283,28 @@ public class ZombieInteractionHandler {
             if (z.getName().equalsIgnoreCase("ZombieBeachSnorkel") && z.isUnderwater()) {
                 if (z.getHealth() < z.getMaxHealth()) z.setHealth(z.getHealth() + 1);
             }
+        }
+    }
+
+    private void handlePlantEaten(Game game, Plant plant, Tile tile) {
+        game.removePlant(plant);
+        if (tile.getPumpkinPlant() == plant) {
+            tile.setPumpkinPlant(null);
+        } else {
+            tile.setPlant(null);
+        }
+
+        if (game.getActiveMiniGame() instanceof Beghoul) {
+            Beghoul bg = (Beghoul) game.getActiveMiniGame();
+            bg.createCrater(plant.getY(), plant.getX());
+            tile.setCrater(true);
+            game.addGameLogMessage("Beghouled: Plant was eaten! Crater created at (" + plant.getX() + ", " + plant.getY() + ")!");
+        }
+    }
+
+    private void checkAndHandlePlantDeath(Game game, Plant plant, Tile tile) {
+        if (!plant.isAlive()) {
+            handlePlantEaten(game, plant, tile);
         }
     }
 }

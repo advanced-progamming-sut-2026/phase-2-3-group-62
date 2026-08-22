@@ -65,7 +65,7 @@ public class MiniGameSelectionScreen implements Screen {
 
     private final MiniGameInfo[] minigames = {
         // Vasebreaker now uses the same icon as Wall-nut Bowling (IMAGE_UI_GENERIC_BUTTON_HUD_MINIGAMES_ALT_SELECTED)
-        new MiniGameInfo("Vasebreaker", "Vasebreaker", "IMAGE_UI_GENERIC_BUTTON_HUD_MINIGAMES_ALT_SELECTED", "768/FULL/WORLDMAP/ZOMBOSS_NODE_EGYPT/ZOMBOSS_NODE_EGYPT.PAM", 0.26f, 0f, 0f),
+        new MiniGameInfo("Vasebreaker", "Vasebreaker", "IMAGE_UI_GENERIC_BUTTON_HUD_MINIGAMES_ALT_SELECTED", "768/FULL/WORLDMAP/ZOMBOSS_NODE_LOSTCITY/ZOMBOSS_NODE_LOSTCITY.PAM", 0.26f, 0f, 0f),
         new MiniGameInfo("IZombie", "I, Zombie", "IMAGE_UI_ALMANAC_TABS_ZOMBIES_ACTIVE", "768/FULL/WORLDMAP/ZOMBOSS_NODE_DARK/ZOMBOSS_NODE_DARK.PAM", 0.26f, 0f, 0f),
         new MiniGameInfo("Beghoul", "Beghouled", "IMAGE_UI_ALMANAC_TABS_UPGRADES_ACTIVE", "768/FULL/WORLDMAP/ZOMBOSS_NODE_ICEAGE/ZOMBOSS_NODE_ICEAGE.PAM", 0.26f, 0f, 0f),
         new MiniGameInfo("Zombotany", "Zombotany", "IMAGE_UI_ALMANAC_FILTER_BUTTON_DOWN", "768/FULL/WORLDMAP/ZOMBOSS_NODE_BEACH/ZOMBOSS_NODE_BEACH.PAM", 0.26f, 0f, 0f),
@@ -84,7 +84,7 @@ public class MiniGameSelectionScreen implements Screen {
         stage = new Stage(game.getViewport(), batch);
         Gdx.input.setInputProcessor(stage);
 
-        bgRegion = game.getTextureBank().region("IMAGE_UI_CARDS_STORE_STORE_CARD_GREEN");
+        bgRegion = game.getTextureBank().region("IMAGE_UI_STORE_GACHA_PINATA_RARE_CARD");
         if (bgRegion == null) {
             bgRegion = game.getTextureBank().region("IMAGE_UI_THYMED_EVENTS_SPRINGENING_EVENT_BG");
             if (bgRegion == null) {
@@ -259,11 +259,9 @@ public class MiniGameSelectionScreen implements Screen {
         GameController gc = new GameController(controller);
         gc.setGame(modelGame);
 
-        // For Zombotany, we need plant selection
         if ("Zombotany".equalsIgnoreCase(minigameName)) {
             changeScreenWithTransition(new SeedChooserForMinigameScreen(game, controller, skin, gc, minigameName));
         } else {
-            // Other minigames - no plant selection needed
             changeScreenWithTransition(new MiniGamePlayScreen(game, gc, minigameName, new ArrayList<>()));
         }
     }

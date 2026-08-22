@@ -1955,7 +1955,7 @@
     "gender": "MALE",
     "securityQuestion": "2",
     "securityAnswer": "8254c329a92850f6d539dd376f4816ee2764517da5e0235514af433164480d7a",
-    "score": 202755,
+    "score": 202965,
     "news": [
       {
         "content": "New plant unlocked: Sunflower! Check your collection.",
@@ -2251,127 +2251,211 @@
       },
       {
         "content": "New plant unlocked: Tall-nut! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Enlighten-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Arma-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Bombard-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Enforce-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Reinforce-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Enchant-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Pierce-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: catTail-mint! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Ice-shroom! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Imitater! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Sun Bean! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Torchwood! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Magnet-shroom! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Hot Potato! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Hypno-shroom! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Cat-tail! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Explode-o-nut! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Sweet Potato! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Garlic! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Endurian! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Kiwibeast! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Phat Beet! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Bonk Choy! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "Congratulations! Level completed successfully.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Wall-nut! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New plant unlocked: Jalapeno! Check your collection.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "Congratulations! Level completed successfully.",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New zombie encountered: ZombieIceAgeHunter!",
-        "isRead": false
+        "isRead": true
       },
       {
         "content": "New zombie encountered: ZombieIceAgeDodo!",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
+        "isRead": true
+      },
+      {
+        "content": "Mini-game stage completed! +10 Score added to your profile.",
         "isRead": false
       }
     ],
     "coins": 1530,
-    "gems": 1220,
+    "gems": 1172,
     "unlockedPlants": [
       "PeaShooter",
       "Sunflower",
@@ -2585,6 +2669,15 @@
           "isTransformedToSheep": false,
           "animState": "idle",
           "animStateTimer": 0.0,
+          "rotationAngle": 0.0,
+          "visualOffsetX": 0.0,
+          "visualOffsetY": 0.0,
+          "targetOffsetX": 0.0,
+          "targetOffsetY": 0.0,
+          "renderAlpha": 0.0,
+          "renderScale": 0.0,
+          "isMarkedForMatchRemoval": false,
+          "matchRemovalTimer": 0.0,
           "dx": 0,
           "dy": 0,
           "hitCount": 0,
@@ -2640,6 +2733,15 @@
           "isTransformedToSheep": false,
           "animState": "idle",
           "animStateTimer": 0.0,
+          "rotationAngle": 0.0,
+          "visualOffsetX": 0.0,
+          "visualOffsetY": 0.0,
+          "targetOffsetX": 0.0,
+          "targetOffsetY": 0.0,
+          "renderAlpha": 0.0,
+          "renderScale": 0.0,
+          "isMarkedForMatchRemoval": false,
+          "matchRemovalTimer": 0.0,
           "dx": 0,
           "dy": 0,
           "hitCount": 0,
@@ -2690,6 +2792,15 @@
           "isTransformedToSheep": false,
           "animState": "idle",
           "animStateTimer": 0.0,
+          "rotationAngle": 0.0,
+          "visualOffsetX": 0.0,
+          "visualOffsetY": 0.0,
+          "targetOffsetX": 0.0,
+          "targetOffsetY": 0.0,
+          "renderAlpha": 0.0,
+          "renderScale": 0.0,
+          "isMarkedForMatchRemoval": false,
+          "matchRemovalTimer": 0.0,
           "dx": 0,
           "dy": 0,
           "hitCount": 0,
@@ -2740,6 +2851,15 @@
           "isTransformedToSheep": false,
           "animState": "idle",
           "animStateTimer": 0.0,
+          "rotationAngle": 0.0,
+          "visualOffsetX": 0.0,
+          "visualOffsetY": 0.0,
+          "targetOffsetX": 0.0,
+          "targetOffsetY": 0.0,
+          "renderAlpha": 0.0,
+          "renderScale": 0.0,
+          "isMarkedForMatchRemoval": false,
+          "matchRemovalTimer": 0.0,
           "dx": 0,
           "dy": 0,
           "hitCount": 0,
@@ -2804,6 +2924,15 @@
           "isTransformedToSheep": false,
           "animState": "idle",
           "animStateTimer": 0.0,
+          "rotationAngle": 0.0,
+          "visualOffsetX": 0.0,
+          "visualOffsetY": 0.0,
+          "targetOffsetX": 0.0,
+          "targetOffsetY": 0.0,
+          "renderAlpha": 0.0,
+          "renderScale": 0.0,
+          "isMarkedForMatchRemoval": false,
+          "matchRemovalTimer": 0.0,
           "dx": 0,
           "dy": 0,
           "hitCount": 0,
@@ -3277,9 +3406,9 @@
         "variableN": 20
       }
     ],
-    "lastSeasonCompleted": 3,
+    "lastSeasonCompleted": 4,
     "lastLevelCompleted": 4,
-    "completedMiniGames": 0,
+    "completedMiniGames": 21,
     "completedDailyQuests": 13,
     "completedNonDailyQuests": 6,
     "highestScoreInScoringGame": 188814

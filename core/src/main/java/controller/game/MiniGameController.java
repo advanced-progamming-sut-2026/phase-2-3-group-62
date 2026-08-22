@@ -159,16 +159,10 @@ public class MiniGameController {
             return "Error: No dropped seed packet available at this tile.";
         }
 
-        Plant droppedPlant = PlantFactory.createPlant(packet);
-        if (droppedPlant == null) droppedPlant = PlantFactory.createPlant("PeaShooter");
-
+        game.getConveyorBeltPlants().add(packet);
         tile.setTemporarySeedPacket(null);
         tile.setSeedPacketTimer(0);
 
-        droppedPlant.setX(x);
-        droppedPlant.setY(y);
-        game.addPlant(droppedPlant);
-        tile.setPlant(droppedPlant);
-        return "Picked up and successfully planted " + packet + " at tile (" + x + ", " + y + ").";
+        return "Collected " + packet + " seed packet! Added to your plant bar.";
     }
 }

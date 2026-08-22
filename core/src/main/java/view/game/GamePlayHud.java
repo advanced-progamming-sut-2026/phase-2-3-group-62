@@ -21,13 +21,14 @@ import controller.game.GameController;
 import main.Maini;
 import model.Game;
 import model.entities.PlantType;
+import model.entities.ZombieType;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
 import model.entities.zombie.Spawner;
 import model.entities.zombie.Zombie;
 import model.entities.zombie.boss.Zomboss;
 import model.enums.SpecialLevelType;
-import model.minigame.MiniGame;
+import model.minigame.*;
 import model.season.Season;
 import model.user.Settings;
 import model.user.User;
@@ -39,6 +40,7 @@ import view.ui.CheatWidget;
 import view.ui.GameOverOverlay;
 import view.ui.PamActor;
 import view.ui.PlantSeedCard;
+import view.ui.ZombieSeedCard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,6 +77,9 @@ public class GamePlayHud {
     private WidgetGroup bossHealthBarGroup;
     private final Image[] bossSegments = new Image[3];
 
+    private Table sunBadge;
+    private Table pfBadge;
+    private ImageButton shovelBtn;
     private Label sunCountLabel;
     private Label plantFoodLabel;
     private Label missionTitleLabel;
@@ -83,6 +88,7 @@ public class GamePlayHud {
     private Table pauseOverlay;
     private GameOverOverlay gameOverOverlay;
 
+    private Table bottomHud;
     private WidgetGroup normalProgressBarGroup;
     private Image progressFillImage;
     private Group flagGroup;
@@ -99,6 +105,7 @@ public class GamePlayHud {
 
     private final Table seedBankTable = new Table();
     private final List<PlantSeedCard> seedCardWidgets = new ArrayList<>();
+    private final List<ZombieSeedCard> zombieCardWidgets = new ArrayList<>();
     private final Map<String, Float> cooldownTimers = new HashMap<>();
 
     private PamActor cursorGhostActor = null;
@@ -221,7 +228,7 @@ public class GamePlayHud {
         Table topHud = new Table();
         topHud.left();
 
-        Table sunBadge = new Table();
+        sunBadge = new Table();
         sunBadge.setTouchable(Touchable.disabled);
         if (badgeRegion != null) sunBadge.setBackground(new TextureRegionDrawable(badgeRegion));
         if (sunIconRegion != null) {
@@ -234,9 +241,14 @@ public class GamePlayHud {
         sunCountLabel.setFontScale(1.1f);
         sunCountLabel.setColor(Color.YELLOW);
         sunBadge.add(sunCountLabel).padRight(16);
+
+        boolean isNoSunMode = gameController.getGame() != null &&
+            (gameController.getGame().getActiveMiniGame() instanceof Vasebreaker ||
+                gameController.getGame().getActiveMiniGame() instanceof WallnutBowling);
+        sunBadge.setVisible(!isNoSunMode);
         topHud.add(sunBadge).height(64).padRight(18);
 
-        Table pfBadge = new Table();
+        pfBadge = new Table();
         pfBadge.setTouchable(Touchable.enabled);
         if (badgeRegion != null) pfBadge.setBackground(new TextureRegionDrawable(badgeRegion));
         if (plantFoodIconRegion != null) {
@@ -263,12 +275,15 @@ public class GamePlayHud {
                 }
             }
         });
+
+        boolean isIZombie = gameController.getGame() != null && gameController.getGame().getActiveMiniGame() instanceof IZombie;
+        pfBadge.setVisible(!isIZombie);
         topHud.add(pfBadge).height(64);
 
         if (shovelBtnRegion != null) {
             ImageButton.ImageButtonStyle shStyle = new ImageButton.ImageButtonStyle();
             shStyle.imageUp = new TextureRegionDrawable(shovelBtnRegion);
-            ImageButton shovelBtn = new ImageButton(shStyle);
+            shovelBtn = new ImageButton(shStyle);
             attachHoverEffect(shovelBtn, 1.1f);
             shovelBtn.addListener(new ClickListener() {
                 @Override
@@ -278,6 +293,7 @@ public class GamePlayHud {
                     screen.setToolMode(screen.getCurrentToolMode() == GamePlayScreen.ToolMode.SHOVEL ? GamePlayScreen.ToolMode.NONE : GamePlayScreen.ToolMode.SHOVEL);
                 }
             });
+            shovelBtn.setVisible(!isIZombie);
             topHud.add(shovelBtn).size(68, 68).padLeft(18);
         }
 
@@ -333,7 +349,7 @@ public class GamePlayHud {
         centerArea.add(sideSeedBankWrapper).left().top().padLeft(12).padTop(8);
         root.add(centerArea).expand().fill().row();
 
-        Table bottomHud = new Table();
+        bottomHud = new Table();
         bottomHud.center();
 
         normalProgressBarGroup = new WidgetGroup();
@@ -380,6 +396,13 @@ public class GamePlayHud {
 
         bottomHud.add(bottomBarStack).size(560f, 44f).padBottom(16);
         root.add(bottomHud).fillX().bottom().center();
+
+        Game modelGame = gameController.getGame();
+        if (modelGame != null && modelGame.getActiveMiniGame() != null) {
+            bottomHud.setVisible(false);
+            normalProgressBarGroup.setVisible(false);
+            bossHealthBarGroup.setVisible(false);
+        }
 
         buildPauseOverlay();
 
@@ -512,10 +535,74 @@ public class GamePlayHud {
     public void rebuildSeedBank() {
         seedBankTable.clear();
         seedCardWidgets.clear();
+        zombieCardWidgets.clear();
         seedBankTable.top().left();
+
+        Game modelGame = gameController.getGame();
+        if (modelGame != null && modelGame.getActiveMiniGame() instanceof IZombie) {
+            IZombie iz = (IZombie) modelGame.getActiveMiniGame();
+            int cardIndex = 0;
+            for (String zName : iz.getAvailableZombieTypes()) {
+                int cost = iz.getZombieCost(zName);
+                ZombieSeedCard zCard = new ZombieSeedCard(game, zName, cost, pamPlayer, plantCardFaceRegion, badgeRegion, skin);
+                zombieCardWidgets.add(zCard);
+                attachHoverEffect(zCard, 1.06f);
+
+                zCard.addListener(new ClickListener() {
+                    @Override
+                    public void clicked(InputEvent event, float x, float y) {
+                        if (screen.isPaused() || (gameOverOverlay != null && gameOverOverlay.isShown())) return;
+                        AudioManager.getInstance().playButtonClick();
+
+                        if (cooldownTimers.getOrDefault(zName, 0f) > 0f) {
+                            screen.enqueueLog("Zombie is on cooldown!", true);
+                            return;
+                        }
+
+                        if (modelGame.getSunCount() < cost) {
+                            screen.enqueueLog("Not enough suns to deploy " + zName + "!", true);
+                            return;
+                        }
+
+                        Plant fakePlant = new Plant(9999, zName, "ZOMBIE", null, cost, 200, 20, 0, 0, null, 0, null, 0);
+                        if (screen.getSelectedPlantToPlant() != null && screen.getSelectedPlantToPlant().getName().equalsIgnoreCase(zName) && screen.getCurrentToolMode() == GamePlayScreen.ToolMode.PLANTING) {
+                            screen.setToolMode(GamePlayScreen.ToolMode.NONE);
+                            return;
+                        }
+
+                        screen.setSelectedPlantToPlant(fakePlant);
+                        screen.setToolMode(GamePlayScreen.ToolMode.PLANTING);
+
+                        for (ZombieSeedCard c : zombieCardWidgets) {
+                            c.setSelected(c == zCard);
+                        }
+
+                        if (cursorGhostActor != null) {
+                            cursorGhostActor.remove();
+                        }
+                        ZombieType zType = ZombieType.fromId(zName);
+                        cursorGhostActor = new PamActor(pamPlayer, zType.getPamPath(), "anim_idle", 0.26f, zType.getOffsetX(), zType.getOffsetY());
+                        cursorGhostActor.getColor().a = 0.55f;
+                        cursorGhostActor.setTouchable(Touchable.disabled);
+                        cursorGhostActor.setSize(GameGrid.TILE_WIDTH, GameGrid.TILE_HEIGHT);
+                        stage.addActor(cursorGhostActor);
+                    }
+                });
+
+                seedBankTable.add(zCard).size(110, 138).pad(2);
+                cardIndex++;
+                if (cardIndex % 2 == 0) {
+                    seedBankTable.row();
+                }
+            }
+            return;
+        }
 
         User user = UserSession.getCurrentUser();
         List<Plant> allPlants = PlantLoader.loadPlants();
+        boolean isFreePlantingMode = modelGame != null &&
+            (modelGame.getActiveMiniGame() instanceof Vasebreaker ||
+                modelGame.getActiveMiniGame() instanceof WallnutBowling);
 
         int cardIndex = 0;
         for (String plantName : screen.getSelectedPlants()) {
@@ -525,6 +612,10 @@ public class GamePlayHud {
                     plant = p;
                     break;
                 }
+            }
+
+            if (plant == null) {
+                plant = model.entities.plant.factory.PlantFactory.createPlant(plantName);
             }
 
             if (plant != null) {
@@ -541,12 +632,12 @@ public class GamePlayHud {
                     public void clicked(InputEvent event, float x, float y) {
                         if (screen.isPaused() || (gameOverOverlay != null && gameOverOverlay.isShown())) return;
                         AudioManager.getInstance().playButtonClick();
-                        Game modelGame = gameController.getGame();
-                        if (modelGame != null && modelGame.getSunCount() < finalPlant.getCost()) {
+                        Game mg = gameController.getGame();
+                        if (mg != null && !isFreePlantingMode && mg.getSunCount() < finalPlant.getCost()) {
                             screen.enqueueLog("Not enough sun!", true);
                             return;
                         }
-                        if (cooldownTimers.getOrDefault(finalPlant.getName(), 0f) > 0f) {
+                        if (!isFreePlantingMode && cooldownTimers.getOrDefault(finalPlant.getName(), 0f) > 0f) {
                             screen.enqueueLog("Plant is on cooldown!", true);
                             return;
                         }
@@ -588,20 +679,39 @@ public class GamePlayHud {
             cooldownTimers.clear();
         }
 
-        for (String plantName : new ArrayList<>(cooldownTimers.keySet())) {
-            float cd = cooldownTimers.get(plantName) - (delta * speedMultiplier);
+        for (String name : new ArrayList<>(cooldownTimers.keySet())) {
+            float cd = cooldownTimers.get(name) - (delta * speedMultiplier);
             if (cd <= 0f) {
-                cooldownTimers.remove(plantName);
+                cooldownTimers.remove(name);
             } else {
-                cooldownTimers.put(plantName, cd);
+                cooldownTimers.put(name, cd);
             }
         }
 
         Game mg = gameController.getGame();
-        int curSun = mg != null ? mg.getSunCount() : 0;
+        if (mg != null && mg.getActiveMiniGame() instanceof IZombie) {
+            int curSun = mg.getSunCount();
+            for (ZombieSeedCard zCard : zombieCardWidgets) {
+                float cd = cooldownTimers.getOrDefault(zCard.getZombieName(), 0f);
+                zCard.updateCooldownState(cd, curSun);
+            }
+            return;
+        }
+
+        boolean isFreePlantingMode = mg != null &&
+            (mg.getActiveMiniGame() instanceof Vasebreaker ||
+                mg.getActiveMiniGame() instanceof WallnutBowling);
+        int curSun = isFreePlantingMode ? 999999 : (mg != null ? mg.getSunCount() : 0);
         for (PlantSeedCard card : seedCardWidgets) {
-            float cd = cooldownTimers.getOrDefault(card.getPlant().getName(), 0f);
+            float cd = isFreePlantingMode ? 0f : cooldownTimers.getOrDefault(card.getPlant().getName(), 0f);
             card.updateCooldownState(cd, curSun);
+        }
+
+        if (mg != null && mg.getActiveMiniGame() != null) {
+            if (bottomHud != null) bottomHud.setVisible(false);
+            if (normalProgressBarGroup != null) normalProgressBarGroup.setVisible(false);
+            if (bossHealthBarGroup != null) bossHealthBarGroup.setVisible(false);
+            return;
         }
 
         Zomboss activeBoss = null;
@@ -615,6 +725,7 @@ public class GamePlayHud {
         }
 
         if (activeBoss != null) {
+            if (bottomHud != null) bottomHud.setVisible(true);
             normalProgressBarGroup.setVisible(false);
             bossHealthBarGroup.setVisible(true);
 
@@ -635,6 +746,7 @@ public class GamePlayHud {
                 }
             }
         } else {
+            if (bottomHud != null) bottomHud.setVisible(true);
             normalProgressBarGroup.setVisible(true);
             bossHealthBarGroup.setVisible(false);
 
@@ -690,7 +802,32 @@ public class GamePlayHud {
         Game modelGame = gameController.getGame();
         if (modelGame == null) return;
 
-        if (sunCountLabel != null) {
+        boolean isMiniGame = modelGame.getActiveMiniGame() != null;
+        if (bottomHud != null) {
+            bottomHud.setVisible(!isMiniGame);
+        }
+        if (normalProgressBarGroup != null && isMiniGame) {
+            normalProgressBarGroup.setVisible(false);
+        }
+        if (bossHealthBarGroup != null && isMiniGame) {
+            bossHealthBarGroup.setVisible(false);
+        }
+
+        boolean isNoSunMode = modelGame.getActiveMiniGame() instanceof Vasebreaker ||
+            modelGame.getActiveMiniGame() instanceof WallnutBowling;
+        if (sunBadge != null) {
+            sunBadge.setVisible(!isNoSunMode);
+        }
+
+        boolean isIZombie = modelGame.getActiveMiniGame() instanceof IZombie;
+        if (pfBadge != null) {
+            pfBadge.setVisible(!isIZombie);
+        }
+        if (shovelBtn != null) {
+            shovelBtn.setVisible(!isIZombie);
+        }
+
+        if (sunCountLabel != null && !isNoSunMode) {
             sunCountLabel.setText(String.valueOf(modelGame.getSunCount()));
         }
 
@@ -721,8 +858,18 @@ public class GamePlayHud {
                 }
             } else if (modelGame.getActiveMiniGame() != null) {
                 MiniGame mg = modelGame.getActiveMiniGame();
-                missionTitleLabel.setText("MINI-GAME: " + mg.getName().toUpperCase());
-                missionDetailLabel.setText("Complete mini-game objectives!");
+                if (mg instanceof Beghoul) {
+                    Beghoul bg = (Beghoul) mg;
+                    int remainingMatches = Math.max(0, bg.getTargetMatches() - bg.getMatchesFormed());
+                    missionTitleLabel.setText("MINI-GAME: BEGHOULED (STAGE " + bg.getStageLevel() + "/3)");
+                    missionDetailLabel.setText("Matches Formed: " + bg.getMatchesFormed() + "/" + bg.getTargetMatches() + " (Remaining: " + remainingMatches + ")");
+                } else if (mg instanceof Zombotany) {
+                    missionTitleLabel.setText("MINI-GAME: ZOMBOTANY");
+                    missionDetailLabel.setText("Defeat all hybrid plant-zombies!");
+                } else {
+                    missionTitleLabel.setText("MINI-GAME: " + mg.getName().toUpperCase());
+                    missionDetailLabel.setText("Complete mini-game objectives!");
+                }
             } else {
                 SpecialLevelType type = modelGame.getLevel() != null ? modelGame.getLevel().getSpecialLevelType() : SpecialLevelType.NONE;
                 Season season = modelGame.getCurrentSeason();
@@ -756,7 +903,7 @@ public class GamePlayHud {
         }
 
         Spawner spawner = modelGame.getSpawner();
-        if (spawner != null) {
+        if (spawner != null && !isMiniGame) {
             int totalWaves = Math.max(1, spawner.getTotalWaves());
             updateFlagsOnBar(totalWaves);
         }
@@ -769,6 +916,9 @@ public class GamePlayHud {
                 cursorGhostActor = null;
             }
             for (PlantSeedCard card : seedCardWidgets) {
+                card.setSelected(false);
+            }
+            for (ZombieSeedCard card : zombieCardWidgets) {
                 card.setSelected(false);
             }
         }
@@ -814,11 +964,11 @@ public class GamePlayHud {
         }
     }
 
-    public void putCooldown(String plantName, float duration) {
+    public void putCooldown(String name, float duration) {
         if (gameController != null && gameController.isCooldownCheatActive()) {
             return;
         }
-        cooldownTimers.put(plantName, duration);
+        cooldownTimers.put(name, duration);
     }
 
     public void showPauseOverlay(boolean show) {

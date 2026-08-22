@@ -7,6 +7,8 @@ import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
 import model.entities.zombie.ZombieEffect;
 import model.enums.TileType;
+import model.minigame.Beghoul;
+import model.minigame.IZombie;
 import view.game.GameGrid;
 import view.game.renderers.ProjectileRenderer;
 
@@ -19,6 +21,7 @@ public class PlantAbilityHandler {
     public void updatePlantsAndAbilities(Game game) {
         List<Plant> plantsToRemove = new ArrayList<>();
         List<Plant> activePlants = new ArrayList<>(game.getActivePlants());
+        boolean isSunDisabledMiniGame = game.getActiveMiniGame() instanceof IZombie || game.getActiveMiniGame() instanceof Beghoul;
 
         for (Plant plant : activePlants) {
             if (plant.isFrozen() || plant.isBowlingBall() || plant.isTransformedToSheep()) {
@@ -57,7 +60,7 @@ public class PlantAbilityHandler {
                 }
             }
 
-            if ("SUN_PRODUCER".equalsIgnoreCase(plant.getCategory())) {
+            if ("SUN_PRODUCER".equalsIgnoreCase(plant.getCategory()) && !isSunDisabledMiniGame) {
                 if (name.equalsIgnoreCase("Gold Bloom")) {
                     plant.triggerAttack(2.0f);
                     if (plant.getHitCount() == 0) {

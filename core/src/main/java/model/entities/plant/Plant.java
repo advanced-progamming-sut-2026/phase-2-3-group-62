@@ -29,6 +29,16 @@ public class Plant {
     private boolean isTransformedToSheep;
     private String animState = "idle";
     private float animStateTimer = 0f;
+    private float rotationAngle = 0f;
+
+    private float visualOffsetX = 0f;
+    private float visualOffsetY = 0f;
+    private float targetOffsetX = 0f;
+    private float targetOffsetY = 0f;
+    private float renderAlpha = 1.0f;
+    private float renderScale = 1.0f;
+    private boolean isMarkedForMatchRemoval = false;
+    private float matchRemovalTimer = 0f;
 
     public void triggerAttack(float duration) {
         if (!"plantfood".equals(this.animState) && !"plantfood_on".equals(this.animState)) {
@@ -73,6 +83,12 @@ public class Plant {
     }
 
     public void updateAnimState(float delta) {
+        if (isBowlingBall) {
+            this.rotationAngle -= delta * 180f;
+            if (this.rotationAngle <= -360f) {
+                this.rotationAngle += 360f;
+            }
+        }
         if (animStateTimer > 0) {
             animStateTimer -= delta;
             if (animStateTimer <= 0) {
@@ -84,6 +100,14 @@ public class Plant {
                 animStateTimer = 0;
             }
         }
+    }
+
+    public float getRotationAngle() {
+        return rotationAngle;
+    }
+
+    public void setRotationAngle(float rotationAngle) {
+        this.rotationAngle = rotationAngle;
     }
 
     private int dx;
@@ -144,6 +168,7 @@ public class Plant {
         this.armorHp = 0;
         this.isBlueFlame = false;
         this.magnetCooldownTicks = 0;
+        this.rotationAngle = 0f;
         if (name != null) {
             if (name.equalsIgnoreCase("Potato Mine")) {
                 this.armTimerTicks = 150;
@@ -457,6 +482,76 @@ public class Plant {
                 if (tag.equalsIgnoreCase("aquatic") || tag.equalsIgnoreCase("water")) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    public float getVisualOffsetX() {
+        return visualOffsetX;
+    }
+
+    public void setVisualOffsetX(float visualOffsetX) {
+        this.visualOffsetX = visualOffsetX;
+    }
+
+    public float getVisualOffsetY() {
+        return visualOffsetY;
+    }
+
+    public void setVisualOffsetY(float visualOffsetY) {
+        this.visualOffsetY = visualOffsetY;
+    }
+
+    public float getRenderAlpha() {
+        return renderAlpha;
+    }
+
+    public void setRenderAlpha(float renderAlpha) {
+        this.renderAlpha = renderAlpha;
+    }
+
+    public float getRenderScale() {
+        return renderScale;
+    }
+
+    public void setRenderScale(float renderScale) {
+        this.renderScale = renderScale;
+    }
+
+    public boolean isMarkedForMatchRemoval() {
+        return isMarkedForMatchRemoval;
+    }
+
+    public void triggerMatchRemoval() {
+        this.isMarkedForMatchRemoval = true;
+        this.matchRemovalTimer = 0.35f;
+    }
+
+    public void updateVisualOffset(float delta) {
+        float speed = 8.5f;
+        if (Math.abs(visualOffsetX) > 0.5f) {
+            visualOffsetX -= visualOffsetX * Math.min(1.0f, delta * speed);
+        } else {
+            visualOffsetX = 0f;
+        }
+
+        if (Math.abs(visualOffsetY) > 0.5f) {
+            visualOffsetY -= visualOffsetY * Math.min(1.0f, delta * speed);
+        } else {
+            visualOffsetY = 0f;
+        }
+    }
+
+    public boolean updateVisualTransition(float delta) {
+        updateVisualOffset(delta);
+
+        if (isMarkedForMatchRemoval) {
+            matchRemovalTimer -= delta;
+            renderScale = Math.max(0.0f, renderScale - (delta * 2.8f));
+            renderAlpha = Math.max(0.0f, renderAlpha - (delta * 2.8f));
+            if (matchRemovalTimer <= 0f) {
+                return true;
             }
         }
         return false;

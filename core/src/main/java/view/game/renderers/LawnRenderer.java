@@ -14,6 +14,7 @@ import model.board.LawnMower;
 import model.board.Sun;
 import model.board.Tile;
 import model.enums.TileType;
+import model.minigame.IZombie;
 import model.season.Season;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
@@ -30,6 +31,7 @@ public class LawnRenderer {
     private final TextureRegion coinDropRegion;
     private final TextureRegion potDropRegion;
     private final TextureRegion craterRegion;
+    private final TextureRegion brainRegion;
     private final ShapeRenderer shapeRenderer;
     private final PamPlayer pamPlayer;
 
@@ -45,6 +47,7 @@ public class LawnRenderer {
         this.coinDropRegion = textureBank.region("IMAGE_UI_DANGERROOM_COIN_MIDSIZE");
         this.potDropRegion = textureBank.region("IMAGE_FIREBREAKER_VASE_GREEN_FIREWORKS_VASE_GREEN_FIREWORKS_115X150");
         this.craterRegion = textureBank.region("IMAGE_ENDLEVEL_SPROUT_SPROUT_179X50");
+        this.brainRegion = textureBank.region("IMAGE_UI_CALENDAR_TIMER_DECO_BIGBRAINZ");
         this.pamPlayer = pamPlayer;
     }
 
@@ -131,6 +134,7 @@ public class LawnRenderer {
         Season season = game.getCurrentSeason();
         String mowerPamPath = getSeasonMowerPamPath(season);
         LawnMower[] lawnMowers = game.getLawnMowers();
+        boolean isIZombie = game.getActiveMiniGame() instanceof IZombie;
 
         float startX = GameGrid.getGridStartX();
         float startY = GameGrid.getGridStartY();
@@ -175,7 +179,18 @@ public class LawnRenderer {
             }
         }
 
-        if (lawnMowers != null) {
+        if (isIZombie) {
+            IZombie iz = (IZombie) game.getActiveMiniGame();
+            if (brainRegion != null) {
+                for (int r = 0; r < GameGrid.ROWS; r++) {
+                    if (!iz.isBrainEaten(r)) {
+                        float bx = startX - (GameGrid.TILE_WIDTH * 0.78f);
+                        float by = startY + ((4 - r) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 5f);
+                        batch.draw(brainRegion, bx, by, 72f, 72f);
+                    }
+                }
+            }
+        } else if (lawnMowers != null) {
             for (int r = 0; r < GameGrid.ROWS; r++) {
                 if (r < lawnMowers.length && !lawnMowers[r].isUsed()) {
                     LawnMower mower = lawnMowers[r];

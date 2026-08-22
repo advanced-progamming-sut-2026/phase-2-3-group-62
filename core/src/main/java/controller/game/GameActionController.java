@@ -31,9 +31,8 @@ public class GameActionController {
             return "Error: Cannot plant in I, Zombie mode! You must deploy zombies using placeZombie.";
         }
 
-        if (game.getActiveMiniGame() instanceof Vasebreaker) {
-            return "Error: Cannot plant normally in Vasebreaker! Plants only come from smashing vases.";
-        }
+        boolean isFreePlantingMode = game.getActiveMiniGame() instanceof Vasebreaker ||
+            game.getActiveMiniGame() instanceof WallnutBowling;
 
         if (game.getActiveMiniGame() instanceof WallnutBowling) {
             WallnutBowling wb = (WallnutBowling) game.getActiveMiniGame();
@@ -67,7 +66,8 @@ public class GameActionController {
                 return "Error: This walnut is not available on the conveyor belt! Available: " + String.join(", ", game.getConveyorBeltPlants());
             }
 
-            Plant ball = PlantFactory.createPlant("WallNut");
+            Plant ball = PlantFactory.createPlant(beltType);
+            if (ball == null) ball = PlantFactory.createPlant("Wall-nut");
             if (ball == null) ball = new Plant(88, beltType, "BOWLING", null, 0, 300, 50, 0, 0, null, 0, null, 0);
             game.getConveyorBeltPlants().remove(beltType);
             ball.setX(x);
@@ -106,7 +106,6 @@ public class GameActionController {
         Plant currentPlant = tile != null ? tile.getPlant() : null;
         Plant currentPumpkin = tile != null ? tile.getPumpkinPlant() : null;
 
-        // منطق Stack شدن Pea Pod
         if (isPeaPod && currentPlant != null && currentPlant.getName().replace(" ", "").replace("-", "").equalsIgnoreCase("peapod")) {
             if (currentPlant.getPeaPodHeads() >= 5) {
                 return "Error: Pea Pod already has maximum heads (5)!";
@@ -116,11 +115,13 @@ public class GameActionController {
             Plant tempPlant = PlantFactory.createPlant("Pea Pod");
             if (tempPlant != null) cost = tempPlant.getCost();
 
-            if (game.getSunCount() < cost) {
+            if (!isFreePlantingMode && game.getSunCount() < cost) {
                 return "Error: Not enough suns to stack Pea Pod! Required: " + cost;
             }
 
-            game.spendSun(cost);
+            if (!isFreePlantingMode) {
+                game.spendSun(cost);
+            }
             currentPlant.incrementPeaPodHead();
             currentPlant.triggerGrowth(0.6f);
             return "Successfully added head to Pea Pod at (" + x + ", " + y + "). Total heads: " + currentPlant.getPeaPodHeads();
@@ -179,8 +180,11 @@ public class GameActionController {
             newPlant.setPlantStage(userLvl);
         }
 
-        if (game.getSunCount() < newPlant.getCost()) {
-            return "Error: Not enough suns! Required: " + newPlant.getCost();
+        if (!isFreePlantingMode) {
+            if (game.getSunCount() < newPlant.getCost()) {
+                return "Error: Not enough suns! Required: " + newPlant.getCost();
+            }
+            game.spendSun(newPlant.getCost());
         }
 
         if (tile != null && tile.getType() == TileType.WATER) {
@@ -199,7 +203,6 @@ public class GameActionController {
             return "Error: Cannot plant on this tile! It is blocked by environment or a crater.";
         }
 
-        game.spendSun(newPlant.getCost());
         newPlant.setX(x);
         newPlant.setY(y);
         game.addPlant(newPlant);
@@ -215,6 +218,10 @@ public class GameActionController {
 
     public String pluckPlant(Game game, int x, int y) {
         if (game == null) return "Error: No active game session.";
+        if (game.getActiveMiniGame() instanceof IZombie) {
+            return "Error: Cannot pluck plants in I, Zombie mode!";
+        }
+
         Tile tile = game.getBoard().getTile(y, x);
         if (tile == null) return "Error: Tile out of bounds.";
 
@@ -242,6 +249,10 @@ public class GameActionController {
 
     public String feedPlant(Game game, int x, int y) {
         if (game == null) return "Error: No active game session.";
+        if (game.getActiveMiniGame() instanceof IZombie) {
+            return "Error: Cannot feed plants in I, Zombie mode!";
+        }
+
         Tile tile = game.getBoard().getTile(y, x);
         Plant target = tile != null ? (tile.getPlant() != null ? tile.getPlant() : tile.getPumpkinPlant()) : null;
         if (target == null) return "Error: There is no plant here to feed.";

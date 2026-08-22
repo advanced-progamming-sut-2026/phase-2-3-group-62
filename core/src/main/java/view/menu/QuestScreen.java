@@ -107,6 +107,55 @@ public class QuestScreen implements Screen {
         return tex;
     }
 
+    private void attachHoverEffect(Actor actor, float targetScale) {
+        if (actor instanceof com.badlogic.gdx.scenes.scene2d.Group) {
+            ((com.badlogic.gdx.scenes.scene2d.Group) actor).setTransform(true);
+        }
+        actor.setOrigin(Align.center);
+        actor.addListener(new InputListener() {
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                if (pointer == -1) {
+                    actor.clearActions();
+                    actor.addAction(Actions.scaleTo(targetScale, targetScale, 0.1f));
+                }
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                if (pointer == -1) {
+                    actor.clearActions();
+                    actor.addAction(Actions.scaleTo(1f, 1f, 0.1f));
+                }
+            }
+        });
+    }
+
+    private Table createNavButton(String iconRegionName, String labelText, float size, ClickListener listener) {
+        TextureRegion icon = game.getTextureBank().region(iconRegionName);
+
+        Button.ButtonStyle style = new Button.ButtonStyle();
+        if (icon != null) {
+            style.up = new TextureRegionDrawable(icon);
+        }
+
+        Button btn = new Button(style);
+        if (listener != null) {
+            btn.addListener(listener);
+        }
+
+        attachHoverEffect(btn, 1.12f);
+
+        Table container = new Table();
+        container.add(btn).size(size, size).row();
+        Label lbl = new Label(labelText, skin);
+        lbl.setFontScale(0.9f);
+        lbl.setColor(Color.WHITE);
+        container.add(lbl).padTop(4).center();
+
+        return container;
+    }
+
     private void buildUI() {
         stage.clear();
 
@@ -184,7 +233,6 @@ public class QuestScreen implements Screen {
         claimAllBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
                 String res = controller.processClaimQuests(new util.ParsedCommand("claim"));
                 Toast.show(stage, skin, res, res.startsWith("Error"));
                 walletBar.updateValues();
@@ -207,7 +255,28 @@ public class QuestScreen implements Screen {
         dialogStack.add(dialogContent);
 
         dialogWrapper.add(dialogStack).size(1220, 580);
-        root.add(dialogWrapper).expand().center().padBottom(10);
+        root.add(dialogWrapper).expand().center().padBottom(6).row();
+
+        Table bottomRow = new Table();
+
+        Table bottomLeft = new Table();
+        Table minigamesBtn = createNavButton(
+            "IMAGE_UI_GENERIC_BUTTON_HUD_MINIGAMES_ALT_SELECTED",
+            "Minigames",
+            64,
+            new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    AudioManager.getInstance().playButtonClick();
+                    game.setScreen(new MiniGameSelectionScreen(game, controller, skin));
+                    dispose();
+                }
+            }
+        );
+        bottomLeft.add(minigamesBtn);
+        bottomRow.add(bottomLeft).left().expandX().padLeft(30);
+
+        root.add(bottomRow).fillX().bottom().padBottom(10);
     }
 
     private ImageButton createTabButton(TextureRegion region, String labelText, Quest.QuestType type) {
@@ -364,7 +433,6 @@ public class QuestScreen implements Screen {
                 claimBtn.addListener(new ClickListener() {
                     @Override
                     public void clicked(InputEvent event, float x, float y) {
-
                         User user = UserSession.getCurrentUser();
                         if (user != null) {
                             quest.applyReward(user);

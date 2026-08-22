@@ -77,7 +77,7 @@ public class GameView extends View {
 
         if (game.getActiveMiniGame() instanceof IZombie) {
             IZombie iz = (IZombie) game.getActiveMiniGame();
-            showMessage(" TICK: " + game.getTickCount() + " | ZOMBIE SUNS: " + iz.getZombieSunCount() + " | BRAINS EATEN: " + iz.getBrainsEaten() + "/5");
+            showMessage(" TICK: " + game.getTickCount() + " | ZOMBIE SUNS: " + game.getSunCount() + " | BRAINS EATEN: " + iz.getBrainsEaten() + "/5");
             StringBuilder poolSb = new StringBuilder(" [AVAILABLE ZOMBIES]: ");
             for (String zType : iz.getStageZombiePool()) {
                 poolSb.append(zType).append(" (").append(iz.getZombieCost(zType)).append(" Sun) | ");
@@ -103,13 +103,11 @@ public class GameView extends View {
         Board board = game.getBoard();
         LawnMower[] mowers = game.getLawnMowers();
 
-
         StringBuilder colHeader = new StringBuilder("       ");
         for (int c = 0; c < 9; c++) {
             colHeader.append(String.format("%-7d", c));
         }
         showMessage(colHeader.toString());
-
 
         for (int r = 0; r < board.getRows(); r++) {
             StringBuilder rowStr = new StringBuilder();
@@ -128,7 +126,6 @@ public class GameView extends View {
                 String paddedContent = String.format("%-4s", cellContent);
                 rowStr.append("[").append(paddedContent).append("] ");
             }
-
 
             rowStr.append(" ").append(r);
             showMessage(rowStr.toString());

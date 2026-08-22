@@ -4,11 +4,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import model.Game;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
 import pvz.libpvz.pam.PamPlayer;
+import view.game.GameGrid;
 import view.game.GamePlayScreen;
 
 import java.util.ArrayList;
@@ -77,7 +79,8 @@ public class PlantRenderer {
     }
 
     private void renderPlant(SpriteBatch batch, Plant plant, float stateTime) {
-        Vector2 pPos = GamePlayScreen.getTileCenterPosition(plant.getY(), plant.getX());
+        float px = GameGrid.getGridStartX() + (plant.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f) + plant.getVisualOffsetX();
+        float py = GameGrid.getGridStartY() + ((4 - plant.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f) + plant.getVisualOffsetY();
 
         String pamPath = plant.getPamPath();
         if (pamPath == null || pamPath.isEmpty() || (pamPath.contains("PEASHOOTER.PAM") && !plant.getName().equalsIgnoreCase("Peashooter"))) {
@@ -88,6 +91,24 @@ public class PlantRenderer {
         }
 
         if (pamPath != null && !pamPath.isEmpty()) {
+            Matrix4 oldMatrix = batch.getTransformMatrix().cpy();
+            Color oldBatchColor = batch.getColor().cpy();
+
+            Matrix4 newMatrix = new Matrix4(oldMatrix);
+            newMatrix.translate(px, py, 0);
+            if (plant.isBowlingBall()) {
+                newMatrix.rotate(0, 0, 1, plant.getRotationAngle());
+            }
+            if (plant.getRenderScale() != 1.0f) {
+                newMatrix.scale(plant.getRenderScale(), plant.getRenderScale(), 1.0f);
+            }
+            newMatrix.translate(-px, -py, 0);
+            batch.setTransformMatrix(newMatrix);
+
+            if (plant.getRenderAlpha() < 1.0f) {
+                batch.setColor(oldBatchColor.r, oldBatchColor.g, oldBatchColor.b, plant.getRenderAlpha());
+            }
+
             String cleanName = normalize(plant.getName());
             if (cleanName.contains("potatomine")) {
                 String state = plant.getAnimState();
@@ -101,13 +122,13 @@ public class PlantRenderer {
                     clips = new String[]{"idle", "anim_idle", "armed", "plant_idle"};
                 }
 
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
 
                 if (!plant.isArmed() && plant.getArmTimerTicks() > 0) {
                     float secondsLeft = plant.getArmTimerTicks() * 0.1f;
                     String timeText = String.format("%.1fs", secondsLeft);
                     glyphLayout.setText(timerFont, timeText);
-                    timerFont.draw(batch, timeText, pPos.x - (glyphLayout.width / 2f), pPos.y - 35f);
+                    timerFont.draw(batch, timeText, px - (glyphLayout.width / 2f), py - 35f);
                 }
             } else if (cleanName.contains("squash")) {
                 String state = plant.getAnimState();
@@ -117,7 +138,7 @@ public class PlantRenderer {
                 } else {
                     clips = new String[]{"idle", "anim_idle"};
                 }
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.contains("tanglekelp")) {
                 String state = plant.getAnimState();
                 String[] clips;
@@ -128,7 +149,7 @@ public class PlantRenderer {
                 } else {
                     clips = new String[]{"idle", "anim_idle"};
                 }
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.contains("endurian")) {
                 String state = plant.getAnimState();
                 String[] clips;
@@ -139,7 +160,7 @@ public class PlantRenderer {
                 } else {
                     clips = new String[]{"idle", "anim_idle"};
                 }
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.contains("chomper")) {
                 String state = plant.getAnimState();
                 String[] clips;
@@ -152,7 +173,7 @@ public class PlantRenderer {
                 } else {
                     clips = new String[]{"idle", "anim_idle"};
                 }
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.contains("phatbeet")) {
                 String state = plant.getAnimState();
                 String[] clips;
@@ -163,7 +184,7 @@ public class PlantRenderer {
                 } else {
                     clips = new String[]{"idle", "anim_idle"};
                 }
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.contains("kiwibeast")) {
                 int stage = Math.max(1, Math.min(3, plant.getPlantStage()));
                 String suffix = (stage == 1) ? "" : String.valueOf(stage);
@@ -176,7 +197,7 @@ public class PlantRenderer {
                 } else {
                     clips = new String[]{"idle" + suffix, "anim_idle" + suffix, "idle"};
                 }
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.contains("mint")) {
                 int remainingTicks = plant.getLifespanTicks();
                 int elapsedTicks = 60 - remainingTicks;
@@ -194,13 +215,13 @@ public class PlantRenderer {
                     clips = new String[]{"loop", "anim_loop", "active", "anim_active", "anim_idle", "idle"};
                 }
 
-                drawWithFallback(batch, pamPath, clips, animTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, animTime, px, py);
             } else if (cleanName.equals("goldbloom")) {
                 int remainingTicks = plant.getLifespanTicks();
                 int elapsedTicks = 20 - remainingTicks;
                 float animTime = elapsedTicks * 0.1f;
                 String[] clips = new String[]{"anim_produce", "produce", "anim_attack", "attack", "anim_idle", "idle"};
-                drawWithFallback(batch, pamPath, clips, animTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, animTime, px, py);
             } else if (cleanName.equals("sunshroom")) {
                 int stage = plant.getPlantStage();
                 if (stage < 1) stage = 1;
@@ -219,7 +240,7 @@ public class PlantRenderer {
                     clips = new String[]{"idle_stage" + stage, "idle" + stage, "anim_idle_stage" + stage, "idle"};
                 }
 
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else if (cleanName.equals("peapod")) {
                 int h = Math.max(1, Math.min(5, plant.getPeaPodHeads()));
                 String headSuffix = (h == 1) ? "" : String.valueOf(h);
@@ -250,7 +271,7 @@ public class PlantRenderer {
                     };
                 }
 
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             } else {
                 String state = plant.getAnimState();
                 String[] clips;
@@ -262,16 +283,19 @@ public class PlantRenderer {
                     clips = new String[]{"anim_idle", "idle", null};
                 }
 
-                drawWithFallback(batch, pamPath, clips, stateTime, pPos.x, pPos.y);
+                drawWithFallback(batch, pamPath, clips, stateTime, px, py);
             }
+
+            batch.setTransformMatrix(oldMatrix);
+            batch.setColor(oldBatchColor);
         }
 
         if (plant.isHasSunToCollect()) {
             try {
-                pamPlayer.draw(batch, "768/INITIAL/EFFECTS/SUN/SUN.PAM", "animation", stateTime, pPos.x, pPos.y + 40f, true);
+                pamPlayer.draw(batch, "768/INITIAL/EFFECTS/SUN/SUN.PAM", "animation", stateTime, px, py + 40f, true);
             } catch (Exception e) {
                 try {
-                    pamPlayer.draw(batch, "768/INITIAL/EFFECTS/SUN/SUN.PAM", null, stateTime, pPos.x, pPos.y + 40f, true);
+                    pamPlayer.draw(batch, "768/INITIAL/EFFECTS/SUN/SUN.PAM", null, stateTime, px, py + 40f, true);
                 } catch (Exception ignored) {}
             }
         }
