@@ -2,6 +2,7 @@ package model.season;
 
 import model.Game;
 import model.board.Board;
+import controller.menu.PreGameController;
 import java.util.Random;
 
 public class AncientEgypt extends Season {
@@ -12,6 +13,12 @@ public class AncientEgypt extends Season {
     @Override
     public void setupEnvironment(Game game) {
         Board board = game.getBoard();
+
+        String chapterName = PreGameController.activeChapterName;
+        if (chapterName != null && chapterName.endsWith("_MG")) {
+            return;
+        }
+
         board.setupGrave(1, 4, 700, 0, false);
         board.setupGrave(2, 5, 700, 0, false);
         board.setupGrave(3, 4, 700, 0, false);
