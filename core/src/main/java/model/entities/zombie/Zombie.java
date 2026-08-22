@@ -440,6 +440,7 @@ public class Zombie {
     public int getHealth() { return health; }
     public int getMaxHealth() { return maxHealth; }
     public double getSpeed() { return speed; }
+    public void setSpeed(double speed) { this.speed = speed; }  // ADD THIS LINE
     public int getDamage() { return damage; }
     public double getX() { return x; }
     public void setX(double x) { this.x = x; }
