@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import controller.menu.MenuController;
 import main.Maini;
 import model.game.ChapterType;
+import view.menu.MiniGameSelectionScreen;
 import pvz.libpvz.pam.PamPlayer;
 import view.audio.AudioManager;
 import view.ui.CheatWidget;
@@ -308,6 +309,7 @@ public class PlayScreen implements Screen {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     AudioManager.getInstance().playButtonClick();
+                    changeScreenWithTransition(new MiniGameSelectionScreen(game, controller, skin));
                 }
             }
         );
