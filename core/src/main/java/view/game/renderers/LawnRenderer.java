@@ -18,7 +18,7 @@ import model.minigame.IZombie;
 import model.season.Season;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 
 import java.lang.reflect.Method;
 

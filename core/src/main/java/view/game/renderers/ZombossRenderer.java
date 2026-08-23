@@ -11,7 +11,7 @@ import model.entities.zombie.Zombie;
 import model.entities.zombie.boss.Zomboss;
 import model.entities.zombie.boss.ZombossType;
 import pvz.libpvz.pam.PamPlayer;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 
 import java.util.ArrayList;
 import java.util.HashMap;

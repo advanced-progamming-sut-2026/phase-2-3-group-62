@@ -9,7 +9,7 @@ import model.entities.zombie.ZombieEffect;
 import model.enums.TileType;
 import model.minigame.Beghoul;
 import model.minigame.IZombie;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 import view.game.renderers.ProjectileRenderer;
 
 import java.util.ArrayList;

@@ -7,7 +7,7 @@ import model.entities.zombie.Zombie;
 import model.entities.zombie.boss.Zomboss;
 import model.entities.zombie.boss.ZombossType;
 import model.entities.zombie.factory.ZombieFactory;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 import view.game.renderers.ScreenShake;
 import view.game.renderers.ZombossRenderer;
 

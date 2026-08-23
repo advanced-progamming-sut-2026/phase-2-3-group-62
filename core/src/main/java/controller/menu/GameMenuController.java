@@ -1,5 +1,6 @@
 package controller.menu;
 
+import com.google.gson.Gson;
 import controller.CommandParser;
 import controller.game.GameController;
 import model.Game;
@@ -10,6 +11,10 @@ import model.enums.SpecialLevelType;
 import model.minigame.MiniGame;
 import model.season.*;
 import model.user.Settings;
+import model.user.User;
+import model.user.UserSession;
+import network.Message;
+import network.NetworkManager;
 import util.FileManager;
 import util.ParsedCommand;
 import view.menu.phase1.MainMenu;
@@ -23,6 +28,7 @@ public class GameMenuController extends Controller {
     private final MenuController menuController;
     private final CommandParser parser;
     private final CheatController cheatController;
+    private final Gson gson = new Gson();
 
     public GameMenuController(MenuController menuController) {
         super(menuController);
@@ -118,8 +124,18 @@ public class GameMenuController extends Controller {
         return gameController;
     }
 
+    private void syncUserDataWithServer() {
+        User currentUser = UserSession.getCurrentUser();
+        if (currentUser != null && NetworkManager.getInstance().isConnected()) {
+            Message req = new Message(Message.Type.UPDATE_USER)
+                .put("user_json", gson.toJson(currentUser));
+            NetworkManager.getInstance().sendRequest(req);
+        }
+    }
+
     public String handleGameMenuInput(String input) {
         if (input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("exit game")) {
+            syncUserDataWithServer();
             MenuManager.getInstance().setCurrentMenu(new MainMenu(menuController));
             return "EXIT_GAME";
         }
@@ -154,6 +170,11 @@ public class GameMenuController extends Controller {
             for (String log : logs) {
                 report.append("\n").append(log);
             }
+
+            if (game.isWon() || game.isLost()) {
+                syncUserDataWithServer();
+            }
+
             return report.toString();
         }
 
@@ -390,7 +411,9 @@ public class GameMenuController extends Controller {
         }
 
         if (action.toLowerCase().contains("cheat")) {
-            return cheatController.handleCheatCommand(cmd);
+            String cheatResult = cheatController.handleCheatCommand(cmd);
+            syncUserDataWithServer();
+            return cheatResult;
         }
 
         return "Unknown game command. Type 'exit' to return to menu.";

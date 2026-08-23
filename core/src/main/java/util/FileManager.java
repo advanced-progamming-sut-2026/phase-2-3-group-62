@@ -1,118 +1,105 @@
 package util;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import model.user.Settings;
 import model.user.User;
+import network.Message;
+import network.NetworkManager;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileManager {
-    private static final String FILE_PATH = "database/users.json";
-    private static final String SETTINGS_PATH = "database/settings.json";
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final String SETTINGS_FILE = "settings.json";
+    private static final String CACHED_USER_FILE = "cached_session.json";
+    private static final Gson gson = new Gson();
 
-    public static void saveUsers(List<User> users) {
-        try {
-            FileHandle file = Gdx.files.local(FILE_PATH);
-            file.writeString(gson.toJson(users), false);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static synchronized void saveCachedUser(User user) {
+        if (user == null) {
+            File file = new File(CACHED_USER_FILE);
+            if (file.exists()) file.delete();
+            return;
+        }
+        try (FileWriter writer = new FileWriter(CACHED_USER_FILE)) {
+            gson.toJson(user, writer);
+        } catch (IOException ignored) {}
+    }
+
+    public static synchronized User loadCachedUser() {
+        File file = new File(CACHED_USER_FILE);
+        if (!file.exists()) return null;
+        try (FileReader reader = new FileReader(file)) {
+            return gson.fromJson(reader, User.class);
+        } catch (IOException e) {
+            return null;
         }
     }
 
-    public static void updateUser(User updatedUser) {
-        List<User> users = loadUsers();
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getUsername().equalsIgnoreCase(updatedUser.getUsername())) {
-                users.set(i, updatedUser);
-                break;
-            }
+    public static synchronized List<User> loadUsers() {
+        Message req = new Message(Message.Type.LOAD_ALL_USERS);
+        Message resp = NetworkManager.getInstance().sendRequest(req);
+        if (resp.getType() == Message.Type.SUCCESS && resp.get("users_json") != null) {
+            return gson.fromJson(resp.get("users_json"), new TypeToken<List<User>>(){}.getType());
         }
-        saveUsers(users);
+        return new ArrayList<>();
     }
 
-    public static Settings loadSettings() {
-        try {
-            FileHandle file = Gdx.files.local(SETTINGS_PATH);
-            if (!file.exists()) {
-                file = Gdx.files.internal(SETTINGS_PATH);
-            }
-            if (!file.exists()) {
-                Settings defaultSettings = new Settings();
-                saveSettings(defaultSettings);
-                return defaultSettings;
-            }
-            Settings settings = gson.fromJson(file.readString(), Settings.class);
-            return (settings != null) ? settings : new Settings();
-        } catch (Exception e) {
-            return new Settings();
+    public static synchronized void saveUsers(List<User> users) {
+        for (User u : users) {
+            updateUser(u);
         }
     }
 
-    public static void saveSettings(Settings settings) {
-        try {
-            FileHandle file = Gdx.files.local(SETTINGS_PATH);
-            file.writeString(gson.toJson(settings), false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static synchronized boolean isUsernameExists(String username) {
+        User u = getUser(username);
+        return u != null;
     }
 
-    public static boolean isUsernameExists(String username) {
-        List<User> users = loadUsers();
-        for (User user : users) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
-                return true;
-            }
-        }
-        return false;
+    public static synchronized boolean checkPassword(String username, String hashedPassword) {
+        User u = getUser(username);
+        return u != null && u.getPassword().equals(hashedPassword);
     }
 
-    public static boolean checkPassword(String username, String hashedConfirmPassword) {
-        List<User> users = loadUsers();
-        for (User user : users) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
-                return user.getPassword().equals(hashedConfirmPassword);
-            }
-        }
-        return false;
-    }
-
-    public static List<User> loadUsers() {
-        try {
-            FileHandle file = Gdx.files.local(FILE_PATH);
-            if (!file.exists()) {
-                file = Gdx.files.internal(FILE_PATH);
-            }
-            if (!file.exists()) {
-                return new ArrayList<>();
-            }
-            List<User> users = gson.fromJson(file.readString(), new TypeToken<List<User>>(){}.getType());
-            return (users != null) ? users : new ArrayList<>();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
-    public static User getUser(String username) {
-        List<User> users = loadUsers();
-        for (User user : users) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
-                return user;
-            }
+    public static synchronized User getUser(String username) {
+        if (username == null) return null;
+        Message req = new Message(Message.Type.GET_USER).put("username", username.trim());
+        Message resp = NetworkManager.getInstance().sendRequest(req);
+        if (resp.getType() == Message.Type.SUCCESS && resp.get("user_json") != null) {
+            return gson.fromJson(resp.get("user_json"), User.class);
         }
         return null;
     }
 
-    public void changeDifficulty(int newDifficulty) {
-        Settings settings = FileManager.loadSettings();
-        settings.setDifficulty(newDifficulty);
-        FileManager.saveSettings(settings);
+    public static synchronized void updateUser(User updatedUser) {
+        if (updatedUser == null) return;
+        saveCachedUser(updatedUser);
+        Message req = new Message(Message.Type.UPDATE_USER).put("user_json", gson.toJson(updatedUser));
+        NetworkManager.getInstance().sendRequest(req);
+    }
+
+    public static synchronized Settings loadSettings() {
+        File file = new File(SETTINGS_FILE);
+        if (!file.exists()) {
+            return new Settings();
+        }
+        try (FileReader reader = new FileReader(file)) {
+            Settings settings = gson.fromJson(reader, Settings.class);
+            return (settings != null) ? settings : new Settings();
+        } catch (IOException e) {
+            return new Settings();
+        }
+    }
+
+    public static synchronized void saveSettings(Settings settings) {
+        try (FileWriter writer = new FileWriter(SETTINGS_FILE)) {
+            gson.toJson(settings, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

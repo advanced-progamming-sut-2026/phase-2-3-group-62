@@ -2,7 +2,7 @@ package view.menu.phase1;
 
 import controller.menu.GameMenuController;
 import controller.menu.MenuController;
-import view.game.GameView;
+import view.game.phase1.GameView;
 
 public class GameMenu extends Menu {
     private final GameView gameView = new GameView();

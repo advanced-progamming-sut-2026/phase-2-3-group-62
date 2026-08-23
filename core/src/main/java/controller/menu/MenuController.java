@@ -1,30 +1,28 @@
 package controller.menu;
 
+import com.google.gson.Gson;
 import controller.CommandParser;
 import controller.NewsController;
 import controller.Validator;
-import model.enums.Gender;
-import model.user.SecurityQuestions;
 import model.user.Settings;
 import model.user.User;
 import model.user.UserSession;
+import network.Message;
+import network.NetworkManager;
 import util.FileManager;
 import util.HashUtil;
 import util.ParsedCommand;
-import view.game.TerminalView;
-
-import java.util.List;
-
-import static util.FileManager.checkPassword;
-import static util.FileManager.isUsernameExists;
+import view.game.phase1.TerminalView;
 
 public class MenuController {
     private final TerminalView view = new TerminalView();
     private final CommandParser parser = new CommandParser();
     private String currentForgetPasswordUsername;
+    private String currentSecurityAnswerHash;
     private final NewsController newsController = new NewsController();
     private final CollectionController collectionController = new CollectionController(this);
     private final LeaderboardController leaderboardController = new LeaderboardController(view);
+    private final Gson gson = new Gson();
 
     public void addNews(String content) {
         newsController.addNewsTrigger(content);
@@ -40,10 +38,6 @@ public class MenuController {
         if (res == Validator.ValidationResult.INVALID_FORMAT) return "Username can only contain letters, numbers, and dashes.";
         if (res == Validator.ValidationResult.INVALID_LENGTH) return "Username must be between 3 and 15 characters.";
 
-        if (isUsernameExists(username)) {
-            return "Username already exists!";
-        }
-
         String nickname = cmd.getArg("-n");
         res = validator.validateNickname(nickname);
         if (res == Validator.ValidationResult.EMPTY_OR_NULL) return "Nickname cannot be empty.";
@@ -51,15 +45,11 @@ public class MenuController {
 
         String email = cmd.getArg("-e");
         res = validator.validateEmail(email);
-        if (res != Validator.ValidationResult.VALID) {
-            return "Invalid email format.";
-        }
+        if (res != Validator.ValidationResult.VALID) return "Invalid email format.";
 
         String gender = cmd.getArg("-g");
         res = validator.validateGender(gender);
-        if (res != Validator.ValidationResult.VALID) {
-            return "Gender must be either male or female.";
-        }
+        if (res != Validator.ValidationResult.VALID) return "Gender must be either male or female.";
 
         String passwordArg = cmd.getArg("-p");
         String password = null;
@@ -86,21 +76,21 @@ public class MenuController {
                 return "Security answer confirmation does not match!";
             }
 
-            User newUser = new User(
-                username,
-                HashUtil.sha256(password),
-                nickname,
-                email,
-                Gender.valueOf(gender.toUpperCase()),
-                cmd.getArg("-q"),
-                HashUtil.sha256(cmd.getArg("-a"))
-            );
+            Message req = new Message(Message.Type.REGISTER)
+                .put("username", username)
+                .put("password", password)
+                .put("nickname", nickname)
+                .put("email", email)
+                .put("gender", gender)
+                .put("question", cmd.getArg("-q"))
+                .put("answer", cmd.getArg("-a"));
 
-            List<User> users = FileManager.loadUsers();
-            users.add(newUser);
-            FileManager.saveUsers(users);
-
-            return "SUCCESS";
+            Message resp = NetworkManager.getInstance().sendRequest(req);
+            if (resp.getType() == Message.Type.SUCCESS) {
+                return "SUCCESS";
+            } else {
+                return resp.get("message");
+            }
         }
 
         return "VALID_STEP_1";
@@ -114,28 +104,27 @@ public class MenuController {
         String username = cmd.getArg("-u");
         String password = cmd.getArg("-p");
         boolean stayLoggedIn = cmd.hasFlag("-stay-logged-in");
-        boolean usernameIsUniq = !isUsernameExists(username);
 
-        if (usernameIsUniq) {
-            return "Username doesn't exist!";
+        Message req = new Message(Message.Type.LOGIN)
+            .put("username", username)
+            .put("password", password);
+
+        Message resp = NetworkManager.getInstance().sendRequest(req);
+
+        if (resp.getType() == Message.Type.SUCCESS) {
+            User user = gson.fromJson(resp.get("user_json"), User.class);
+            UserSession.setCurrentUser(user);
+
+            if (stayLoggedIn) {
+                Settings settings = FileManager.loadSettings();
+                settings.setAutoLoginUsername(user.getUsername());
+                FileManager.saveSettings(settings);
+            }
+
+            return "Login successful!";
+        } else {
+            return resp.get("message");
         }
-
-        boolean passwordIsTrue = checkPassword(username, HashUtil.sha256(password));
-
-        if (!passwordIsTrue) {
-            return "Password incorrect!";
-        }
-
-        User user = FileManager.getUser(username);
-        UserSession.setCurrentUser(user);
-
-        if (stayLoggedIn) {
-            Settings settings = FileManager.loadSettings();
-            settings.setAutoLoginUsername(user.getUsername());
-            FileManager.saveSettings(settings);
-        }
-
-        return "Login successful!";
     }
 
     public String processForgetPassword(ParsedCommand cmd) {
@@ -146,18 +135,18 @@ public class MenuController {
 
             String username = cmd.getArg("-u");
             String email = cmd.getArg("-e");
-            User user = FileManager.getUser(username);
 
-            if (user == null) {
-                return "Username doesn't exist!";
+            Message req = new Message(Message.Type.FORGET_PASSWORD)
+                .put("username", username)
+                .put("email", email);
+
+            Message resp = NetworkManager.getInstance().sendRequest(req);
+            if (resp.getType() == Message.Type.SUCCESS) {
+                currentForgetPasswordUsername = username;
+                currentSecurityAnswerHash = resp.get("answer_hash");
+                return "SUCCESS_username and email check";
             }
-
-            if (!user.getEmail().equalsIgnoreCase(email)) {
-                return "Username and email do not match!";
-            }
-
-            currentForgetPasswordUsername = username;
-            return "SUCCESS_username and email check";
+            return resp.get("message");
         }
 
         if (cmd.getAction().equals("answer")) {
@@ -165,19 +154,12 @@ public class MenuController {
                 return "Answer is required.";
             }
 
-            if (currentForgetPasswordUsername == null) {
+            if (currentForgetPasswordUsername == null || currentSecurityAnswerHash == null) {
                 return "Please enter username and email first!";
             }
 
-            User user = FileManager.getUser(currentForgetPasswordUsername);
-            if (user == null) {
-                return "Username doesn't exist!";
-            }
-
-            String answer = user.getSecurityAnswer();
             String inputAnswer = cmd.getArg("-a");
-
-            if (answer.equals(HashUtil.sha256(inputAnswer))) {
+            if (currentSecurityAnswerHash.equals(HashUtil.sha256(inputAnswer))) {
                 return "SUCCESS_answer get";
             } else {
                 return "Answer is incorrect!";
@@ -193,11 +175,6 @@ public class MenuController {
                 return "Please verify your identity first!";
             }
 
-            User user = FileManager.getUser(currentForgetPasswordUsername);
-            if (user == null) {
-                return "Username doesn't exist!";
-            }
-
             Validator validator = new Validator();
             Validator.ValidationResult res = validator.validatePassword(cmd.getArg("-p"), cmd.getArg("-c"));
             if (res == Validator.ValidationResult.PASSWORD_MISMATCH) return "Passwords do not match!";
@@ -207,18 +184,17 @@ public class MenuController {
             if (res == Validator.ValidationResult.WEAK_PASSWORD_NO_DIGIT) return "Password must contain a digit.";
             if (res == Validator.ValidationResult.WEAK_PASSWORD_NO_SPECIAL) return "Password must contain a special character.";
 
-            String newPassword = cmd.getArg("-p");
-            String hashedPassword = HashUtil.sha256(newPassword);
+            Message req = new Message(Message.Type.RESET_PASSWORD)
+                .put("username", currentForgetPasswordUsername)
+                .put("new_password", cmd.getArg("-p"));
 
-            if (hashedPassword.equals(user.getPassword())) {
-                return "New password must be different from current password.";
+            Message resp = NetworkManager.getInstance().sendRequest(req);
+            if (resp.getType() == Message.Type.SUCCESS) {
+                currentForgetPasswordUsername = null;
+                currentSecurityAnswerHash = null;
+                return "SUCCESS_password changed";
             }
-
-            user.setPassword(hashedPassword);
-            FileManager.updateUser(user);
-
-            currentForgetPasswordUsername = null;
-            return "SUCCESS_password changed";
+            return resp.get("message");
         }
 
         return "Invalid action";
@@ -231,6 +207,7 @@ public class MenuController {
         Settings settings = FileManager.loadSettings();
         settings.setAutoLoginUsername(null);
         FileManager.saveSettings(settings);
+        FileManager.saveCachedUser(null);
 
         return "User " + username + " logged out successfully!";
     }
@@ -308,7 +285,7 @@ public class MenuController {
             if (res != Validator.ValidationResult.VALID) {
                 return "Invalid username format or length.";
             }
-            if (isUsernameExists(newUsername)) {
+            if (FileManager.isUsernameExists(newUsername)) {
                 return "Username already exists.";
             }
             currentUser.setUsername(newUsername);
@@ -371,7 +348,6 @@ public class MenuController {
 
     public void handleLeaderboardMenuInput(String input) {
         if (input.equalsIgnoreCase("back")) {
-//            MenuManager.getInstance().setCurrentMenu(new PlayMenu(this));
             return;
         }
         ParsedCommand cmd = parser.parse(input);
@@ -392,7 +368,6 @@ public class MenuController {
 
     public void handleCollectionMenuInput(String input) {
         if (input.equalsIgnoreCase("back")) {
-//            MenuManager.getInstance().setCurrentMenu(new PlayMenu(this));
             return;
         }
 

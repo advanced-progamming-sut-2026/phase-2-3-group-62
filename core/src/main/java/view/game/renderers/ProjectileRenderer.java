@@ -6,7 +6,7 @@ import model.Game;
 import model.board.Bullet;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 
 import java.util.ArrayList;
 import java.util.HashMap;

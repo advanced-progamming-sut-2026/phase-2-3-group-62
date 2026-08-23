@@ -6,6 +6,7 @@ import model.entities.zombie.boss.Zomboss;
 import model.enums.TileType;
 import model.handler.GameStateManager;
 import model.handler.ZombieAbilityHandler;
+import view.game.mainGame.GameGrid;
 import view.game.renderers.ProjectileRenderer;
 
 import java.util.ArrayList;
@@ -220,8 +221,8 @@ public class Board {
 
                     String explosionPam = ProjectileRenderer.getExplosionPamForBullet(bullet);
                     if (explosionPam != null) {
-                        float hitPx = view.game.GameGrid.getGridStartX() + ((float) checkTileCol * view.game.GameGrid.TILE_WIDTH) + (view.game.GameGrid.TILE_WIDTH / 2f);
-                        float hitPy = view.game.GameGrid.getGridStartY() + ((4 - bRow) * view.game.GameGrid.TILE_HEIGHT) + (view.game.GameGrid.TILE_HEIGHT / 2f);
+                        float hitPx = GameGrid.getGridStartX() + ((float) checkTileCol * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f);
+                        float hitPy = GameGrid.getGridStartY() + ((4 - bRow) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
                         ProjectileRenderer.triggerStaticImpact(explosionPam, hitPx, hitPy);
                     }
 
@@ -283,8 +284,8 @@ public class Board {
 
                 String explosionPam = ProjectileRenderer.getExplosionPamForBullet(bullet);
                 if (explosionPam != null) {
-                    float hitPx = view.game.GameGrid.getGridStartX() + ((float) targetZombie.getX() * view.game.GameGrid.TILE_WIDTH) + (view.game.GameGrid.TILE_WIDTH / 2f);
-                    float hitPy = view.game.GameGrid.getGridStartY() + ((4 - targetZombie.getY()) * view.game.GameGrid.TILE_HEIGHT) + (view.game.GameGrid.TILE_HEIGHT / 2f);
+                    float hitPx = GameGrid.getGridStartX() + ((float) targetZombie.getX() * GameGrid.TILE_WIDTH) + (GameGrid.TILE_WIDTH / 2f);
+                    float hitPy = GameGrid.getGridStartY() + ((4 - targetZombie.getY()) * GameGrid.TILE_HEIGHT) + (GameGrid.TILE_HEIGHT / 2f);
                     ProjectileRenderer.triggerStaticImpact(explosionPam, hitPx, hitPy);
                 }
 

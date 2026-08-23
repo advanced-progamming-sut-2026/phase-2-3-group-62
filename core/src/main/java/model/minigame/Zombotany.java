@@ -7,7 +7,7 @@ import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
 import model.entities.zombie.ZombieEffect;
 import model.entities.zombie.factory.ZombieFactory;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 import view.game.renderers.ProjectileRenderer;
 
 import java.util.ArrayList;

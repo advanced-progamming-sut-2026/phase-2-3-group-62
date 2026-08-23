@@ -4,7 +4,7 @@ import model.Game;
 import model.board.Tile;
 import model.entities.plant.Plant;
 import model.entities.zombie.Zombie;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 import view.game.renderers.ProjectileRenderer;
 
 import java.util.ArrayList;

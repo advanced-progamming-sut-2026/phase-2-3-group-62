@@ -5,13 +5,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
 import model.Game;
 import model.entities.plant.Plant;
 import model.entities.plant.loader.PlantLoader;
 import pvz.libpvz.pam.PamPlayer;
-import view.game.GameGrid;
-import view.game.GamePlayScreen;
+import view.game.mainGame.GameGrid;
 
 import java.util.ArrayList;
 import java.util.HashMap;

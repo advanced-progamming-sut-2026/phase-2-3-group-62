@@ -7,7 +7,7 @@ import model.board.Tile;
 import model.minigame.Vasebreaker;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 import view.ui.PamActor;
 
 import java.util.HashMap;

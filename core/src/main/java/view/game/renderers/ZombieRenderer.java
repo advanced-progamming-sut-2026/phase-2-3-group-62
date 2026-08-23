@@ -10,7 +10,7 @@ import model.entities.zombie.Zombie;
 import model.entities.zombie.boss.Zomboss;
 import pvz.libpvz.pam.PamPlayer;
 import pvz.libpvz.textures.TextureBank;
-import view.game.GameGrid;
+import view.game.mainGame.GameGrid;
 
 import java.util.ArrayList;
 import java.util.Comparator;

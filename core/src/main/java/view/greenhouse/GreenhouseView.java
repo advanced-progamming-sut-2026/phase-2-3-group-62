@@ -2,7 +2,7 @@ package view.greenhouse;
 
 import model.greenhouse.Greenhouse;
 import model.greenhouse.Pot;
-import view.game.View;
+import view.game.phase1.View;
 
 public class GreenhouseView extends View {
     public void showGreenhouse(Greenhouse greenhouse) {

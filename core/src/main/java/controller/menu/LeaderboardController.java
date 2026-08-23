@@ -5,7 +5,7 @@ import model.leaderboard.Leaderboard;
 import model.user.User;
 import util.FileManager;
 import util.ParsedCommand;
-import view.game.TerminalView;
+import view.game.phase1.TerminalView;
 
 import java.util.List;
 

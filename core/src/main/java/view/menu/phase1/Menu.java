@@ -2,7 +2,7 @@ package view.menu.phase1;
 
 import controller.CommandParser;
 import controller.menu.MenuController;
-import view.game.TerminalView;
+import view.game.phase1.TerminalView;
 
 public abstract class Menu {
     protected MenuController controller;
