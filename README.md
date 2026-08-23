@@ -116,7 +116,7 @@ java -jar build/libs/PvZ2-Client.jar
 | Contributor | GitHub / Handle |
 | --- | --- |
 | 🧑‍💻 **Kian** | `kian` |
-| 🧑‍💻 **Darrrth** | `darrrth` |
+| 🧑‍💻 **Alireza** | `darrrth` |
 | 🧑‍💻 **Arian** | `arian` |
 
 ---
