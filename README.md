@@ -51,11 +51,11 @@ This project was developed in **three distinct phases** as part of the Advanced 
 
 ## 📸 Screenshots
 
-| Main Adventure Mode | Online 1v1 PvP Mode |
-| --- | --- |
 |  |  |
-| **Mini-Games Hub** | **Live Emote & Reaction Drawer** |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/d01d6db4-3905-499c-b8d0-219d969948a3" width="100%" /> | <img src="https://github.com/user-attachments/assets/7f8fc5f8-aa0f-4fd4-9d8c-8918fd077d29" width="100%" /> |
 |  |  |
+| <img src="https://github.com/user-attachments/assets/9c2eeb29-1a99-4d91-b40c-5c4e8f310a72" width="100%" /> | <img src="https://github.com/user-attachments/assets/a5b73cf2-61e7-40a8-9c44-eee174bfa479" width="100%" /> |
 
 ---
 
