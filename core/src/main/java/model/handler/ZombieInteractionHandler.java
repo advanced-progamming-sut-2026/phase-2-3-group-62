@@ -180,7 +180,8 @@ public class ZombieInteractionHandler {
                         checkAndHandlePlantDeath(game, targetPlant, targetTile);
                     } else if (!zombie.getName().equalsIgnoreCase("ZombieWizard")) {
                         if (game.getTickCount() % 10 == 0) {
-                            int damageToDeal = zombie.getName().toLowerCase().contains("gargantuar") ? 200 : zombie.getDamage();
+                            int damageToDeal = zombie.getName().toLowerCase().contains("gargantuar") ? 400 :
+                                zombie.getDamage();
                             targetPlant.takeDamage(damageToDeal);
                             game.getScoreGame().onDamageTaken(damageToDeal);
 
