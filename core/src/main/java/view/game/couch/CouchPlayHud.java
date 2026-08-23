@@ -2,6 +2,7 @@ package view.game.couch;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -22,13 +23,13 @@ public class CouchPlayHud {
     private Label zombieSunCountLabel;
     private Label timerLabel;
 
-    public CouchPlayHud(Maini game, Skin skin, Runnable onLeaveClick) {
+    public CouchPlayHud(Maini game, Skin skin, Actor cheatWidget, Runnable onLeaveClick) {
         this.game = game;
         this.skin = skin;
-        build(onLeaveClick);
+        build(cheatWidget, onLeaveClick);
     }
 
-    private void build(Runnable onLeaveClick) {
+    private void build(Actor cheatWidget, Runnable onLeaveClick) {
         topHud.left();
 
         TextureRegion badgeRegion = game.getTextureBank().region("IMAGE_UI_GENERIC_BUTTON_GENERIC_LTECURRENCY");
@@ -89,6 +90,10 @@ public class CouchPlayHud {
         joustBar.add(zombieTeamBadge).height(58);
 
         topHud.add(joustBar).expandX().center();
+
+        if (cheatWidget != null) {
+            topHud.add(cheatWidget).padRight(12);
+        }
 
         Table timerBadge = new Table();
         if (timerBgRegion != null) timerBadge.setBackground(new TextureRegionDrawable(timerBgRegion));

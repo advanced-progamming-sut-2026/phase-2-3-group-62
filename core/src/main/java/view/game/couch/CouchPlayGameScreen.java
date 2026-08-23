@@ -47,6 +47,7 @@ import view.game.renderers.PlantRenderer;
 import view.game.renderers.ProjectileRenderer;
 import view.game.renderers.ZombieRenderer;
 import view.menu.playMenu.PlayScreen;
+import view.ui.CheatWidget;
 import view.ui.PamActor;
 import view.ui.PlantSeedCard;
 import view.ui.Toast;
@@ -94,6 +95,7 @@ public class CouchPlayGameScreen implements Screen {
     private CouchPlayHud hud;
     private CouchPlayDialogHelper dialogHelper;
     private PauseOverlayDialog pauseDialog;
+    private CheatWidget cheatWidget;
 
     private Image tileHighlightImage;
     private PamActor cursorGhostActor;
@@ -223,7 +225,17 @@ public class CouchPlayGameScreen implements Screen {
         root.top().left();
         stage.addActor(root);
 
-        hud = new CouchPlayHud(game, skin, () -> {
+        cheatWidget = new CheatWidget(skin, stage, CheatWidget.Context.INGAME, gameController, new Runnable() {
+            @Override
+            public void run() {
+                plantSunCount = modelGame.getSunCount();
+                zombieSunCount = modelGame.getSunCount();
+                hud.updatePlantSun(plantSunCount);
+                hud.updateZombieSun(zombieSunCount);
+            }
+        });
+
+        hud = new CouchPlayHud(game, skin, cheatWidget, () -> {
             if (!isGameOver) {
                 togglePause();
             }
@@ -370,7 +382,7 @@ public class CouchPlayGameScreen implements Screen {
         if (selectedZombieIndex < 0 || selectedZombieIndex >= chosenZombies.size()) return;
         String zName = chosenZombies.get(selectedZombieIndex);
 
-        if (zombieCooldowns.getOrDefault(zName, 0f) > 0f) {
+        if (!gameController.isCooldownCheatActive() && zombieCooldowns.getOrDefault(zName, 0f) > 0f) {
             Toast.show(stage, skin, "P2: Zombie is on cooldown!", true);
             return;
         }
@@ -435,7 +447,7 @@ public class CouchPlayGameScreen implements Screen {
                     if (isGameOver || isPaused) return;
                     AudioManager.getInstance().playButtonClick();
 
-                    if (plantCooldowns.getOrDefault(finalPlant.getName(), 0f) > 0f) {
+                    if (!gameController.isCooldownCheatActive() && plantCooldowns.getOrDefault(finalPlant.getName(), 0f) > 0f) {
                         Toast.show(stage, skin, "P1: Plant is on cooldown!", true);
                         return;
                     }
@@ -570,11 +582,11 @@ public class CouchPlayGameScreen implements Screen {
         }
 
         for (PlantSeedCard card : plantCardWidgets) {
-            float cd = plantCooldowns.getOrDefault(card.getPlant().getName(), 0f);
+            float cd = gameController.isCooldownCheatActive() ? 0f : plantCooldowns.getOrDefault(card.getPlant().getName(), 0f);
             card.updateCooldownState(cd, plantSunCount);
         }
         for (ZombieSeedCard card : zombieCardWidgets) {
-            float cd = zombieCooldowns.getOrDefault(card.getZombieName(), 0f);
+            float cd = gameController.isCooldownCheatActive() ? 0f : zombieCooldowns.getOrDefault(card.getZombieName(), 0f);
             card.updateCooldownState(cd, zombieSunCount);
         }
     }
@@ -699,6 +711,13 @@ public class CouchPlayGameScreen implements Screen {
                 int eaten = izombieLogic.getBrainsEaten();
                 boolean plantsWon = eaten < 5;
                 dialogHelper.showEndGameDialog(plantsWon ? "TIME'S UP! Plants defended the lawn!" : "TIME'S UP! Zombies failed to eat all brains.", plantsWon);
+            }
+
+            if (modelGame.getSunCount() != plantSunCount) {
+                plantSunCount = modelGame.getSunCount();
+                zombieSunCount = modelGame.getSunCount();
+                hud.updatePlantSun(plantSunCount);
+                hud.updateZombieSun(zombieSunCount);
             }
 
             hud.updateTimer(gameTime);
