@@ -80,19 +80,6 @@ public class Greenhouse {
         return available;
     }
 
-    
-    public List<Pot> getPots() { return pots; }
-    public List<Pot> getAvailablePots() {
-        List<Pot> available = new ArrayList<>();
-        for (Pot pot : pots) {
-            if (!pot.isLocked() && pot.isEmpty()) {
-                available.add(pot);
-            }
-        }
-        return available;
-    }
-
-
     public void updateAllPots() {
         for (Pot pot : pots) {
             pot.update();
