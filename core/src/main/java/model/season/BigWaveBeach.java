@@ -17,14 +17,6 @@ public class BigWaveBeach extends Season {
         super("BigWaveBeach", 4);
     }
 
-    @Override
-    public void setupEnvironment(Game game) {
-        Board board = game.getBoard();
-        board.setupLowBeach(2, 7);
-        board.setupLowBeach(3, 8);
-        updateWaterTiles(board);
-    }
-
     private void updateWaterTiles(Board board) {
         for (int r = 0; r < board.getRows(); r++) {
             for (int c = 0; c < board.getColumns(); c++) {
