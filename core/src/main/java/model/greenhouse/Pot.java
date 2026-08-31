@@ -89,21 +89,6 @@ public class Pot {
         return Math.max(0, growthTime - elapsed);
     }
 
-    
-    public void accelerateGrowth() {
-        if (!isGrowing || readyToHarvest) return;
-        this.plantedTime = System.currentTimeMillis() - this.growthTime;
-        this.readyToHarvest = true;
-        this.isGrowing = false;
-    }
-
-    public int getDiamondCostToAccelerate() {
-        long remaining = getRemainingTime();
-        if (remaining <= 0) return 0;
-        double hours = (double) remaining / (1000.0 * 60.0 * 60.0);
-        return (int) Math.ceil(hours);
-    }
-
     public Plant getPlant() { return plant; }
     public void setPlant(Plant plant) { this.plant = plant; }
     public int getRow() { return row; }
