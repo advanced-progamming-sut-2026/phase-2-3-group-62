@@ -14,6 +14,18 @@ public class DarkAges extends Season {
         super("DarkAges", 4);
     }
 
+    
+    @Override
+    public void setupEnvironment(Game game) {
+        Board board = game.getBoard();
+        board.setupNecromancy(1, 3);
+        board.setupNecromancy(3, 5);
+        board.setupGrave(0, 4, 700, 50, false);
+        board.setupGrave(2, 4, 700, 0, true);
+        board.setupGrave(4, 5, 700, 0, false);
+    }
+
+
     @Override
     public void setupEnvironment(Game game) {
         Board board = game.getBoard();
